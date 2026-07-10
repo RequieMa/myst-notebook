@@ -1,0 +1,286 @@
+{
+  "name": "myst-notebook",
+  "displayName": "MyST Notebook",
+  "description": "Edit MyST Markdown (.md) in VS Code's notebook editor: rendered prose, math, and executable code cells.",
+  "version": "0.1.0",
+  "publisher": "myst-notebook",
+  "license": "MIT",
+  "icon": "icon.png",
+  "galleryBanner": {
+    "color": "#1e1e2e",
+    "theme": "dark"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RequieMa/myst-notebook.git"
+  },
+  "keywords": [
+    "myst",
+    "jupyter book",
+    "markdown",
+    "notebook",
+    "latex"
+  ],
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Notebooks"
+  ],
+  "extensionDependencies": [
+    "ms-python.python"
+  ],
+  "activationEvents": [
+    "workspaceContains:**/myst.yml",
+    "onLanguage:markdown"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "notebooks": [
+      {
+        "type": "myst-notebook",
+        "displayName": "MyST Notebook",
+        "priority": "option",
+        "selector": [
+          {
+            "filenamePattern": "*.md"
+          }
+        ]
+      }
+    ],
+    "notebookRenderer": [
+      {
+        "id": "myst-markdown-it",
+        "displayName": "MyST markdown-it renderer",
+        "entrypoint": {
+          "extends": "vscode.markdown-it-renderer",
+          "path": "./dist/renderer/mystRenderer.js"
+        }
+      }
+    ],
+    "views": {
+      "explorer": [
+        {
+          "id": "myst-notebook.mathPalette",
+          "name": "Math Palette",
+          "when": "notebookType == 'myst-notebook'"
+        },
+        {
+          "id": "myst-notebook.connections",
+          "name": "Backlinks",
+          "when": "workspaceContains:**/myst.yml"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "myst-notebook.graph.show",
+        "title": "MyST: Show Knowledge Graph"
+      },
+      {
+        "command": "myst-notebook.onEnter",
+        "title": "MyST Notebook: Split cell on Enter"
+      },
+      {
+        "command": "myst-notebook.insertMathSymbolDirect",
+        "title": "Insert Math Symbol"
+      },
+      {
+        "command": "myst-notebook.insertMathSymbolPicker",
+        "title": "MyST: Insert Math Symbol"
+      },
+      {
+        "command": "myst-notebook.insertExecutableCell",
+        "title": "MyST: Insert Executable Cell (collapsed)"
+      },
+      {
+        "command": "myst-notebook.insertDisplayCode",
+        "title": "MyST: Insert Display Code Block"
+      },
+      {
+        "command": "myst-notebook.restartKernel",
+        "title": "MyST: Restart Kernel"
+      },
+      {
+        "command": "myst-notebook.interruptKernel",
+        "title": "MyST: Interrupt Kernel"
+      },
+      {
+        "command": "myst-notebook.insertNewline",
+        "title": "MyST: Insert Newline"
+      },
+      {
+        "command": "myst-notebook.openAsNotebook",
+        "title": "Open as MyST Notebook",
+        "category": "MyST"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "myst-notebook.graph.show",
+        "key": "ctrl+shift+g",
+        "when": "notebookType == 'myst-notebook'"
+      },
+      {
+        "command": "myst-notebook.onEnter",
+        "key": "enter",
+        "when": "notebookType == 'myst-notebook' && notebookEditorFocused && notebookCellType == 'markup' && inputFocus && editorTextFocus && !editorHasSelection && !suggestWidgetVisible && !editorHasMultipleSelections"
+      },
+      {
+        "command": "myst-notebook.insertMathSymbolPicker",
+        "key": "ctrl+shift+m",
+        "when": "notebookType == 'myst-notebook' && editorTextFocus"
+      },
+      {
+        "command": "myst-notebook.insertExecutableCell",
+        "key": "ctrl+shift+e",
+        "when": "notebookType == 'myst-notebook' && notebookEditorFocused"
+      },
+      {
+        "command": "myst-notebook.insertDisplayCode",
+        "key": "ctrl+shift+d",
+        "when": "notebookType == 'myst-notebook' && notebookEditorFocused"
+      },
+      {
+        "command": "myst-notebook.insertNewline",
+        "key": "alt+enter",
+        "when": "notebookType == 'myst-notebook' && notebookCellType == 'markup' && editorTextFocus"
+      },
+      {
+        "command": "notebook.cell.delete",
+        "key": "ctrl+d",
+        "when": "notebookType == 'myst-notebook' && notebookEditorFocused && !inputFocus"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "myst-notebook.restartKernel",
+          "when": "notebookType == 'myst-notebook'"
+        },
+        {
+          "command": "myst-notebook.interruptKernel",
+          "when": "notebookType == 'myst-notebook'"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "myst-notebook.openAsNotebook",
+          "when": "resourceExtname == .md && !notebookType",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "MyST Notebook",
+      "properties": {
+        "myst-notebook.graph.titleMaxLength": {
+          "type": "number",
+          "default": 24,
+          "description": "Maximum title length shown on graph nodes. Set to 0 for unlimited."
+        },
+        "myst-notebook.links.directory.mode": {
+          "type": "string",
+          "default": "off",
+          "enum": [
+            "off",
+            "relative-path",
+            "absolute-path"
+          ],
+          "description": "How directory is shown in link completion results."
+        },
+        "myst-notebook.completion.useAlias": {
+          "type": "boolean",
+          "default": false,
+          "description": "Use note title as alias in link completion."
+        },
+        "myst-notebook.completion.linkFormat": {
+          "type": "string",
+          "default": "wikilink",
+          "enum": [
+            "wikilink",
+            "mdlink"
+          ],
+          "description": "Format used when inserting link completions."
+        }
+      }
+    },
+    "walkthroughs": [
+      {
+        "id": "myst-notebook.gettingStarted",
+        "title": "Get Started with MyST Notebook",
+        "description": "Write MyST Markdown e-books rendered inline — no preview pane, no build step.",
+        "steps": [
+          {
+            "id": "open",
+            "title": "Open a MyST document",
+            "description": "Open a .md file in a MyST / Jupyter Book project (one with a myst.yml). Click the editor toolbar button, or run the command.\n[Open as MyST Notebook](command:myst-notebook.openAsNotebook)",
+            "media": {
+              "markdown": "media/walkthrough/open.md"
+            }
+          },
+          {
+            "id": "render",
+            "title": "Write prose — watch it render",
+            "description": "Type a paragraph, then move focus to another cell. Prose, math, admonitions, and figures render in place. Press Enter at the end of a paragraph to open a new cell below.",
+            "media": {
+              "markdown": "media/walkthrough/render.md"
+            }
+          },
+          {
+            "id": "run",
+            "title": "Run a code cell",
+            "description": "Press Ctrl+Shift+E to insert an executable {code-cell}, then Shift+Enter to run it. MyST discovers your Python environment and streams output live — no Jupyter extension required.",
+            "media": {
+              "markdown": "media/walkthrough/run.md"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "scripts": {
+    "build": "node esbuild.js",
+    "watch": "node esbuild.js --watch",
+    "test": "vitest run",
+    "test:integration": "node esbuild.js && tsc -p tsconfig.test.json && vscode-test",
+    "vscode:prepublish": "node esbuild.js --production"
+  },
+  "devDependencies": {
+    "@types/github-slugger": "^1.3.0",
+    "@types/markdown-it": "^14.1.2",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.5.2",
+    "d3-color": "^3.1.0",
+    "d3-force": "^3.0.0",
+    "d3-scale": "^4.0.0",
+    "esbuild": "^0.21.0",
+    "force-graph": "^1.51.0",
+    "lit": "^3.0.0",
+    "mocha": "^10.8.2",
+    "typescript": "^5.4.0",
+    "vitest": "^1.6.0"
+  },
+  "dependencies": {
+    "@jupyterlab/services": "^7.6.1",
+    "@types/lodash": "^4.17.24",
+    "github-slugger": "^1.4.0",
+    "gray-matter": "^4.0.2",
+    "js-sha1": "^0.7.0",
+    "katex": "^0.16.0",
+    "lodash": "^4.18.1",
+    "lru-cache": "^11.0.0",
+    "markdown-it": "^14.0.0",
+    "mnemonist": "^0.39.8",
+    "remark-frontmatter": "^2.0.0",
+    "remark-parse": "^8.0.2",
+    "remark-wiki-link": "^0.0.4",
+    "title-case": "^4.3.2",
+    "unified": "^9.0.0",
+    "unist-util-visit": "^2.0.2",
+    "yaml": "^2.9.0"
+  }
+}

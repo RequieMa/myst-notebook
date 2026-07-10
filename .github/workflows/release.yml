@@ -1,0 +1,30 @@
+name: Release
+
+# Targets the own-repo layout (myst-notebook/ is the repo root; see ci.yml).
+# Publishes to the VS Code Marketplace when a tag matching v* is pushed, using the
+# VSCE_PAT repository secret (create it per PUBLISH.md before tagging a release).
+#
+# Version note: `vsce publish` reads the version from package.json, NOT the git tag.
+# Bump package.json to match the tag (e.g. npm version 0.2.0 before tagging v0.2.0),
+# or vsce will publish the package.json version regardless of the tag name.
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npx vitest run
+      - run: xvfb-run -a npm run test:integration
+      - run: npx @vscode/vsce publish -p ${{ secrets.VSCE_PAT }}

@@ -1,0 +1,32 @@
+name: CI
+
+# This workflow targets the own-repo layout: myst-notebook/ is the repository root
+# (the extension is published to its own GitHub repo per PUBLISH.md), so this file
+# sits at <repo-root>/.github/workflows/ and GitHub Actions runs it directly.
+#
+# If you instead keep the multi-extension monorepo layout (myst-notebook/ as a
+# subdirectory), move this file to <repo-root>/.github/workflows/ and add:
+#   defaults: { run: { working-directory: myst-notebook } }
+#   and set cache-dependency-path: myst-notebook/package-lock.json
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npx vitest run
+      - run: xvfb-run -a npm run test:integration
+      - run: npx @vscode/vsce package --no-dependencies

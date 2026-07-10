@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "module": "Node16",
+    "moduleResolution": "Node16",
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+    "outDir": "dist",
+    "rootDir": ".",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "paths": {
+      "@foam/core": ["./src/graph/core/index.ts"],
+      "@foam/core/*": ["./src/graph/core/*"]
+    }
+  },
+  "include": ["src", "renderer"],
+  "exclude": ["node_modules", "dist", "**/*.test.ts", "src/graph/webview-src", "src/test"]
+}
