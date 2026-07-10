@@ -4,6 +4,10 @@
 
 > *"Write MyST Markdown e-books in VS Code — rendered inline, no preview pane, no build step."*
 
+<!-- Support badges — always at the top, next to the value prop -->
+[![Ko-fi](https://img.shields.io/badge/Support-ko--fi-FF5E5B?style=flat&logo=ko-fi&logoColor=white)](https://ko-fi.com/requiema)
+[![Afdian](https://img.shields.io/badge/Support-爱发电-946CE6?style=flat)](https://afdian.com/a/requiema)
+
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![VS Code](https://img.shields.io/badge/VS_Code-1.85+-blue.svg)](https://code.visualstudio.com/)
 <!-- Coming: VS Code Marketplace version badge -->
@@ -146,10 +150,22 @@ So I built the tool I wanted — the source file **is** the notebook, rendered i
 
 ## Connect
 
-| Platform | Link |
-|----------|------|
-| GitHub | [@RequieMa](https://github.com/RequieMa) |
-| Blog | [requiema.github.io](https://requiema.github.io) |
+<div align="center">
+
+| | | |
+|---|---|---|
+| 📧 | Email | [mazengou@gmail.com](mailto:mazengou@gmail.com) |
+| 🌐 | Personal Site | [requiema.github.io](https://requiema.github.io) |
+| 📝 | dev.to | [dev.to/requiema](https://dev.to/requiema) |
+| 𝕏 | X | [x.com/mazengou](https://x.com/mazengou) |
+| 👾 | Reddit | [u/Leather_Rip7919](https://www.reddit.com/user/Leather_Rip7919/) |
+| 🔖 | 掘金 | [juejin.cn/user/76300220645242](https://juejin.cn/user/76300220645242) |
+| 📦 | Gitee | [gitee.com/requiema](https://gitee.com/requiema) |
+| 📖 | 知乎 | [zhihu.com/people/consilivm](https://www.zhihu.com/people/consilivm) |
+| 🎬 | Bilibili | 镇魂曲麦 |
+| 📱 | 公众号 | 镇魂曲麦 |
+
+</div>
 
 ---
 

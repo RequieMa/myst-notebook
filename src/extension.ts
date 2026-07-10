@@ -5,8 +5,7 @@ import { registerEnterSplit, insertNewline } from './enterSplit';
 import { registerInputCollapse } from './inputCollapse';
 import { registerInsertCells } from './insertCells';
 import { MathSymbolStore, MathSymbolProvider } from './mathPalette';
-import { lintCellText, extractMathBlocks, DEFAULT_RULES } from './mathLinter';
-import { tokenizeMathElements } from './mathTokenizer';
+import { lintCellText, collectMathPaletteItems, DEFAULT_RULES } from './mathLinter';
 import { MathCompletionProvider } from './mathCompletion';
 import { insertMathSymbolQuickPick } from './mathQuickPick';
 import { registerZoteroSetup } from './zoteroSetup';
@@ -131,15 +130,12 @@ function registerMathLinterAndCollect(
 
     const original = cell.document.getText();
 
-    // Collect distinct, reusable math elements into the palette. Each block is
-    // tokenized so a compound equation contributes its parts (e.g. `\tilde{x}`,
-    // `\begin{bmatrix}…\end{bmatrix}`) rather than the whole line.
+    // Collect distinct, reusable math elements into the palette. The linter
+    // runs first so commands like \mathbf R become \mathbf{R} before storage.
     let paletteDirty = false;
-    for (const inner of extractMathBlocks(original)) {
-      for (const element of tokenizeMathElements(inner)) {
-        store.add(element);
-        paletteDirty = true;
-      }
+    for (const element of collectMathPaletteItems(original)) {
+      store.add(element);
+      paletteDirty = true;
     }
     if (paletteDirty) provider.refresh();
 

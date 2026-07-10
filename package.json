@@ -62,8 +62,7 @@
       "explorer": [
         {
           "id": "myst-notebook.mathPalette",
-          "name": "Math Palette",
-          "when": "notebookType == 'myst-notebook'"
+          "name": "Math Palette"
         },
         {
           "id": "myst-notebook.connections",

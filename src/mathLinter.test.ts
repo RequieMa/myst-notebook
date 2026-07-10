@@ -6,6 +6,7 @@ import {
   DEFAULT_RULES,
   type LintRule,
 } from './mathLinter';
+import { tokenizeMathElements } from './mathTokenizer';
 
 describe('runLinter — pluggability', () => {
   it('applies rules in order and chains results', () => {
@@ -131,5 +132,47 @@ describe('extractMathBlocks', () => {
 
   it('returns an empty array when there is no math', () => {
     expect(extractMathBlocks('just prose, no math here')).toEqual([]);
+  });
+});
+
+// Will add Bug 4 regression tests after extracting collectMathPaletteItems
+
+// ---------------------------------------------------------------------------
+// Bug 4 regression: collect math palette items — extract → lint → tokenize
+// The pipeline MUST lint before tokenizing so e.g. \mathbf R → \mathbf{R}
+// before being stored in the palette.
+// ---------------------------------------------------------------------------
+import { collectMathPaletteItems } from './mathLinter';
+
+describe('collectMathPaletteItems (extract → lint → tokenize)', () => {
+  it('stores \\mathbf{R} (braced) when input has \\mathbf R', () => {
+    const tokens = collectMathPaletteItems('body $\\mathbf R$ prose');
+    expect(tokens).toContain('\\mathbf{R}');
+    expect(tokens).not.toContain('\\mathbf');
+  });
+
+  it('stores already-braced \\mathbf{R} verbatim', () => {
+    const tokens = collectMathPaletteItems('$\\mathbf{R}$');
+    expect(tokens).toContain('\\mathbf{R}');
+  });
+
+  it('stores \\frac{1}{2} from unlinted \\frac12', () => {
+    const tokens = collectMathPaletteItems('$$\\frac12$$');
+    expect(tokens).toContain('\\frac{1}{2}');
+  });
+
+  it('lints \\mathbb E → \\mathbb{E} before tokenizing', () => {
+    const tokens = collectMathPaletteItems('Let $\\mathbb E$ be expectation.');
+    expect(tokens).toContain('\\mathbb{E}');
+    expect(tokens).not.toContain('\\mathbb');
+  });
+
+  it('handles prose with no math gracefully', () => {
+    expect(collectMathPaletteItems('just prose, no math here')).toEqual([]);
+  });
+
+  it('preserves compound macros (\\tilde{\\mathbf{x}})', () => {
+    const tokens = collectMathPaletteItems('$\\tilde{\\mathbf{x}}$');
+    expect(tokens).toContain('\\tilde{\\mathbf{x}}');
   });
 });

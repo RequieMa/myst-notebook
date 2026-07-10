@@ -96,6 +96,7 @@ export const activate = () => ({
     md.block.ruler.before('fence', 'myst_colon_fence', (state, startLine, endLine, silent) => {
       const startPos = state.bMarks[startLine] + state.tShift[startLine];
       const lineText = state.src.slice(startPos, state.eMarks[startLine]).trimEnd();
+      console.warn('[myst_colon_fence] called line=' + startLine + ' text=' + JSON.stringify(lineText.slice(0, 80)));
       if (!/^:{3,}\s*\{/.test(lineText)) return false;
 
       const openColons = (lineText.match(/^(:+)/) ?? [':::'])[0];
@@ -132,6 +133,7 @@ export const activate = () => ({
     md.renderer.rules['myst_directive'] = (tokens, idx) => {
       const name = tokens[idx].info;
       const body = tokens[idx].content;
+      console.warn('[myst_directive] rendering directive=' + name + ' bodyLen=' + body.length);
       const arg = (tokens[idx].meta as { arg?: string } | undefined)?.arg ?? '';
 
       // figure/image: render a real <figure>/<img> using the opener-line

@@ -1,3 +1,5 @@
+import { tokenizeMathElements } from './mathTokenizer';
+
 export interface LintRule {
   name: string;
   apply: (mathExpr: string) => string;
@@ -73,3 +75,20 @@ export const DEFAULT_RULES: LintRule[] = [
   spaceBinaryOp,
   braceFrac,
 ];
+
+/**
+ * Extracts math blocks from prose text, lints each block, then tokenizes the
+ * result into palette-ready LaTeX elements. The lint-first ordering ensures
+ * that commands like `\mathbf R` are corrected to `\mathbf{R}` BEFORE being
+ * stored in the recently-used palette (Bug 4 fix).
+ */
+export function collectMathPaletteItems(text: string): string[] {
+  const tokens: string[] = [];
+  for (const inner of extractMathBlocks(text)) {
+    const linted = runLinter(inner, DEFAULT_RULES);
+    for (const element of tokenizeMathElements(linted)) {
+      tokens.push(element);
+    }
+  }
+  return tokens;
+}

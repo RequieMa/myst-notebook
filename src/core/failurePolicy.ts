@@ -35,6 +35,7 @@ function condaEnvName(interpreterPath: string): string | undefined {
 /**
  * Build the install command for the missing pip package subset.
  * - conda env with a parseable name -> `conda install -n <name> -y <pkgs>`
+ * - uv-managed Python (detected via path heuristic) -> `<interpreter> -m uv pip install <pkgs>`
  * - everything else                 -> `<interpreter> -m pip install <pkgs>`
  *
  * Precondition: pkgs is non-empty (the caller skips install when nothing is missing).
@@ -49,7 +50,18 @@ export function buildInstallCommand(
       return { command: 'conda', args: ['install', '-n', envName, '-y', ...pkgs] };
     }
   }
+  // uv-managed Python: PEP 668 externally-managed-environment forbids pip from
+  // touching system Python installed via uv. Detect via path heuristics and use
+  // `uv pip install` instead.
+  if (isUvManagedPath(interpreterPath)) {
+    return { command: interpreterPath, args: ['-m', 'uv', 'pip', 'install', ...pkgs] };
+  }
   return { command: interpreterPath, args: ['-m', 'pip', 'install', ...pkgs] };
+}
+
+/** Heuristic: interpreter lives under a path typical of uv-installed Python. */
+function isUvManagedPath(interpreterPath: string): boolean {
+  return interpreterPath.includes('/.local/bin/') || interpreterPath.includes('/.venv/bin/');
 }
 
 export type InstallOutcomeKind = 'ok' | 'nonZeroExit' | 'exitZeroStillMissing';

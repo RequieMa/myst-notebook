@@ -244,6 +244,55 @@ export class MystController {
         exec.end(false, Date.now());
       }
     }
+
+    // Bug 2: when Shift+Enter executes the last cell and it's a code cell,
+    // VS Code auto-creates another code cell below. For MyST notebooks the
+    // default should be Markdown — most cells are prose. Schedule a one-shot
+    // check after VS Code's auto-insert to convert the new empty code cell.
+    this.scheduleAutoCellFix(notebook, cells);
+  }
+
+  private scheduleAutoCellFix(
+    notebook: vscode.NotebookDocument,
+    cells: readonly vscode.NotebookCell[]
+  ): void {
+    const executedLastCodeCell = cells.some(
+      (c) =>
+        c.kind === vscode.NotebookCellKind.Code &&
+        c.index === notebook.cellCount - 1
+    );
+    if (!executedLastCodeCell) return;
+
+    const notebookUri = notebook.uri.toString();
+    setTimeout(async () => {
+      // Re-fetch: the document may have changed since execution ended.
+      const nb = vscode.workspace.notebookDocuments.find(
+        (n) => n.uri.toString() === notebookUri
+      );
+      if (!nb || nb.cellCount === 0) return;
+      const lastCell = nb.cellAt(nb.cellCount - 1);
+      // Only replace the auto-created cell: empty code cell at the end.
+      if (
+        lastCell.kind === vscode.NotebookCellKind.Code &&
+        lastCell.document.getText() === ''
+      ) {
+        const edit = new vscode.WorkspaceEdit();
+        edit.set(nb.uri, [
+          vscode.NotebookEdit.replaceCells(
+            new vscode.NotebookRange(nb.cellCount - 1, nb.cellCount),
+            [
+              new vscode.NotebookCellData(
+                vscode.NotebookCellKind.Markup,
+                '',
+                'markdown'
+              ),
+            ]
+          ),
+        ]);
+        await vscode.workspace.applyEdit(edit);
+        log('[controller] auto-cell-fix: replaced empty code cell with markup');
+      }
+    }, 100);
   }
 
   /** Command handler: restart the active notebook's kernel, clearing its state. */
