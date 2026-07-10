@@ -11,6 +11,7 @@ import { parseFigureBody } from '../src/core/mystFigure';
  */
 export const activate = () => ({
   extendMarkdownIt(md: MarkdownIt) {
+    console.warn('[mystRenderer] extendMarkdownIt called — custom renderer is loading');
     ensureKatexCss();
 
     // Inline math: $...$  (single-dollar, no surrounding space inside the delims)
