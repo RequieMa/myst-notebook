@@ -1,2 +1,14 @@
+node_modules/
+dist/
+out/
+*.vsix
 .vscode-test/
 out-test/
+.vscode/settings.json
+
+# Generated at build time (esbuild.js)
+renderer/generated/
+
+# Scratch files — one-time process docs, not shipped
+_scratch/
+test-fixtures/smoke-workspace/.vscode/
