@@ -61,12 +61,12 @@ describe('buildInstallCommand', () => {
       args: ['pip', 'install', '--python', '/home/user/project/.venv/bin/python', 'ipykernel'],
     });
   });
-  it('uses uv pip install when interpreter is Homebrew-managed (linuxbrew)', () => {
+  it('uses pip --break-system-packages when interpreter is Homebrew-managed', () => {
     expect(
       buildInstallCommand('/home/linuxbrew/.linuxbrew/bin/python3', ['ipykernel', 'jupyter-server'])
     ).toEqual({
-      command: 'uv',
-      args: ['pip', 'install', '--python', '/home/linuxbrew/.linuxbrew/bin/python3', 'ipykernel', 'jupyter-server'],
+      command: '/home/linuxbrew/.linuxbrew/bin/python3',
+      args: ['-m', 'pip', 'install', '--break-system-packages', 'ipykernel', 'jupyter-server'],
     });
   });
 });

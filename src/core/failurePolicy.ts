@@ -50,24 +50,23 @@ export function buildInstallCommand(
       return { command: 'conda', args: ['install', '-n', envName, '-y', ...pkgs] };
     }
   }
-  // uv-managed Python: PEP 668 externally-managed-environment forbids pip from
-  // touching system Python installed via uv. Detect via path heuristics and use
-  // the `uv` binary directly. `uv` is a standalone Rust tool, NOT a Python module,
-  // so the command is `uv pip install --python <interpreter> <pkgs>`.
+  // uv-managed Python (pep 668 externally-managed via uv): use `uv pip install`.
   if (isUvManagedPath(interpreterPath)) {
     return { command: 'uv', args: ['pip', 'install', '--python', interpreterPath, ...pkgs] };
+  }
+  // Homebrew Python: also externally-managed, but uv respects this as well.
+  // Fall back to pip with --break-system-packages (what brew's own error suggests).
+  if (interpreterPath.includes('/.linuxbrew/') || interpreterPath.includes('/homebrew/')) {
+    return { command: interpreterPath, args: ['-m', 'pip', 'install', '--break-system-packages', ...pkgs] };
   }
   return { command: interpreterPath, args: ['-m', 'pip', 'install', ...pkgs] };
 }
 
-/** Heuristic: interpreter lives under a path typical of externally-managed Python
- *  (uv-installed, Homebrew, etc.) where pip refuses to install packages. */
+/** Heuristic: interpreter lives under a path typical of uv-installed Python. */
 function isUvManagedPath(interpreterPath: string): boolean {
   return (
     interpreterPath.includes('/.local/bin/') ||
-    interpreterPath.includes('/.venv/bin/') ||
-    interpreterPath.includes('/.linuxbrew/') ||
-    interpreterPath.includes('/homebrew/')
+    interpreterPath.includes('/.venv/bin/')
   );
 }
 
