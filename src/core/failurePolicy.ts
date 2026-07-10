@@ -60,9 +60,15 @@ export function buildInstallCommand(
   return { command: interpreterPath, args: ['-m', 'pip', 'install', ...pkgs] };
 }
 
-/** Heuristic: interpreter lives under a path typical of uv-installed Python. */
+/** Heuristic: interpreter lives under a path typical of externally-managed Python
+ *  (uv-installed, Homebrew, etc.) where pip refuses to install packages. */
 function isUvManagedPath(interpreterPath: string): boolean {
-  return interpreterPath.includes('/.local/bin/') || interpreterPath.includes('/.venv/bin/');
+  return (
+    interpreterPath.includes('/.local/bin/') ||
+    interpreterPath.includes('/.venv/bin/') ||
+    interpreterPath.includes('/.linuxbrew/') ||
+    interpreterPath.includes('/homebrew/')
+  );
 }
 
 export type InstallOutcomeKind = 'ok' | 'nonZeroExit' | 'exitZeroStillMissing';
