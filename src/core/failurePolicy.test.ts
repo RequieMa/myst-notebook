@@ -49,16 +49,16 @@ describe('buildInstallCommand', () => {
     expect(
       buildInstallCommand('/home/user/.local/bin/python3.12', ['ipykernel', 'jupyter-server'])
     ).toEqual({
-      command: '/home/user/.local/bin/python3.12',
-      args: ['-m', 'uv', 'pip', 'install', 'ipykernel', 'jupyter-server'],
+      command: 'uv',
+      args: ['pip', 'install', '--python', '/home/user/.local/bin/python3.12', 'ipykernel', 'jupyter-server'],
     });
   });
   it('uses uv pip install when interpreter path contains .venv (uv venv)', () => {
     expect(
       buildInstallCommand('/home/user/project/.venv/bin/python', ['ipykernel'])
     ).toEqual({
-      command: '/home/user/project/.venv/bin/python',
-      args: ['-m', 'uv', 'pip', 'install', 'ipykernel'],
+      command: 'uv',
+      args: ['pip', 'install', '--python', '/home/user/project/.venv/bin/python', 'ipykernel'],
     });
   });
 });

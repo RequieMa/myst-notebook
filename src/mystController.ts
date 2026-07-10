@@ -261,6 +261,9 @@ export class MystController {
         c.kind === vscode.NotebookCellKind.Code &&
         c.index === notebook.cellCount - 1
     );
+    log(
+      `[controller] autoCellFix: triggered=${executedLastCodeCell} cellCount=${notebook.cellCount} cellKinds=${cells.map(c => c.kind).join(',')} cellIndexes=${cells.map(c => c.index).join(',')}`
+    );
     if (!executedLastCodeCell) return;
 
     const notebookUri = notebook.uri.toString();
@@ -269,8 +272,11 @@ export class MystController {
       const nb = vscode.workspace.notebookDocuments.find(
         (n) => n.uri.toString() === notebookUri
       );
-      if (!nb || nb.cellCount === 0) return;
+      if (!nb || nb.cellCount === 0) { log('[controller] autoCellFix: notebook gone or empty'); return; }
       const lastCell = nb.cellAt(nb.cellCount - 1);
+      log(
+        `[controller] autoCellFix: lastCell kind=${lastCell.kind} textLen=${lastCell.document.getText().length} cellCount=${nb.cellCount}`
+      );
       // Only replace the auto-created cell: empty code cell at the end.
       if (
         lastCell.kind === vscode.NotebookCellKind.Code &&

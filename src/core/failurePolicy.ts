@@ -52,9 +52,10 @@ export function buildInstallCommand(
   }
   // uv-managed Python: PEP 668 externally-managed-environment forbids pip from
   // touching system Python installed via uv. Detect via path heuristics and use
-  // `uv pip install` instead.
+  // the `uv` binary directly. `uv` is a standalone Rust tool, NOT a Python module,
+  // so the command is `uv pip install --python <interpreter> <pkgs>`.
   if (isUvManagedPath(interpreterPath)) {
-    return { command: interpreterPath, args: ['-m', 'uv', 'pip', 'install', ...pkgs] };
+    return { command: 'uv', args: ['pip', 'install', '--python', interpreterPath, ...pkgs] };
   }
   return { command: interpreterPath, args: ['-m', 'pip', 'install', ...pkgs] };
 }
