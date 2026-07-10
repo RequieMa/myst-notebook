@@ -1,92 +1,102 @@
+<sub>🌐 <b>English</b> <!-- · <a href="README-cn.md">中文</a> --></sub>
+
 # MyST Notebook
 
-**Write MyST Markdown e-books in VS Code — rendered inline, no preview pane, no build step.**
+> *"Write MyST Markdown e-books in VS Code — rendered inline, no preview pane, no build step."*
+
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![VS Code](https://img.shields.io/badge/VS_Code-1.85+-blue.svg)](https://code.visualstudio.com/)
+<!-- Coming: VS Code Marketplace version badge -->
+
+<br>
+
+**Edit MyST Markdown (`.md`) in VS Code's notebook editor.** Prose renders in place as you type, math renders inline with KaTeX, and `{code-cell}` blocks run through Jupyter — all in one pane, no separate preview, no build step.
+
+[Install](#quick-start) · [Features](#whats-here) · [Shortcuts](#keyboard-shortcuts) · [Structure](#repository-structure)
 
 ---
 
-## The problem with existing tools
-
-| Tool | Pain |
-|------|------|
-| Jupyter Notebook | Browser-based, heavy, not a writing environment |
-| VS Code Markdown Preview | Separate pane, not MyST-aware, can't execute cells |
-| Quarto | Separate render step — you write blind, then build to see |
-| JupyterBook CLI | Build-only, no live editing |
-
-**MyST Notebook is different.** It opens your `.md` source directly in VS Code's notebook editor. Prose renders in place when you leave a cell — headings, math, directives, figures all appear inline. You never leave your editor. You never run a build. You just type.
+<!--
+  Hero GIF: show opening a .md as MyST Notebook → typing prose → rendering → running a code cell.
+  Record 20–30 seconds of the Extension Development Host.
+-->
+<p align="center">
+  <img src="demo.gif" alt="MyST Notebook · prose rendering, math, and code execution inline in VS Code" width="100%">
+</p>
 
 ---
 
-## What it looks like
+## Quick Start
 
-- Type a paragraph → move focus away → it renders.
-- Press **Enter** at the end of a paragraph → a new cell opens below, cursor ready.
-- Press **Ctrl+Shift+E** → an executable code cell appears, collapsed, cursor inside.
-- Press **Shift+Enter** → the cell runs, output streams in live.
-- Press **Ctrl+D** → the cell is gone.
+Install from the VS Code Marketplace, open a MyST `.md`, and start writing.
 
-The document is the notebook. The notebook is the document.
+1. Install **MyST Notebook** from the [VS Code Marketplace](#) <!-- link after publish -->
+2. Open a `.md` file in a MyST / Jupyter Book project (one with a `myst.yml`)
+3. Click **Open as MyST Notebook** in the editor toolbar, or right-click the tab → **Reopen Editor With… → MyST Notebook**
 
----
+To make MyST Notebook the default for `.md` files: **Command Palette → Configure default editor for '.md' → MyST Notebook**.
 
-## Features
-
-### Inline rendering — no preview pane
-
-Prose, math (`$...$`, `$$...$$`), admonitions (`:::{{note}}`, `:::{{warning}}`, …), and figures (`:::{{figure}}`) render in place. KaTeX fonts are bundled — math renders offline with no CDN required.
-
-### Auto-split while you type
-
-Finishing a paragraph by pressing Enter automatically creates a new cell below and moves the cursor into it. Blank lines inside fences (`:::`, ` ``` `) are handled correctly — the split is MyST-aware.
-
-### Code execution — no Jupyter extension
-
-Code cells (`{{code-cell}}` blocks) run against a Python environment MyST discovers itself via the Python extension. It launches its own Jupyter server, so the full 450 MB Jupyter extension is not required. First run shows a quick-pick of available environments (venv, conda, pyenv, poetry, system); MyST remembers the choice for the workspace. Missing `ipykernel` or `jupyter-server`? MyST offers to install them.
-
-Output streams incrementally as cells run — no waiting for completion.
-
-### Lossless round-trip
-
-The serializer reads and writes your `.md` source with a strict lossless guarantee. `serialize(deserialize(text)) === text`. Nothing is reordered or rewritten.
-
-### Zotero citations
-
-One command configures the [Citation Picker for Zotero](https://marketplace.visualstudio.com/items?itemName=mblode.zotero) to insert MyST `` {{cite}}`key` `` references directly from your Zotero library.
+**Requirements:** VS Code 1.85+ · [Python extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python) (for code execution) · A Python environment (optional — editing and rendering work without one)
 
 ---
 
-## Keyboard shortcuts
+## What's Here
 
-### Writing
+| Capability | What it does | How to use |
+|------------|-------------|------------|
+| **Inline rendering** | Prose, math (`$…$`, `$$…$$`), admonitions, figures — all render in place when you move focus | Just type, then move to another cell |
+| **Executable code cells** | `{code-cell}` blocks run through Jupyter, output streams live | `Ctrl+Shift+E` to insert, `Shift+Enter` to run |
+| **Knowledge graph** | `[[wikilinks]]`, backlinks, and a D3 force graph — MyST-aware, including `{cite}` roles as nodes | `Ctrl+Shift+G` to open the graph |
+| **Zotero citations** | Insert `{cite}` references from your Zotero library, one command to configure | Run **MyST: Configure Zotero Citations**, then `Alt+Shift+Z` |
+| **Math palette** | Collect frequently-used LaTeX symbols, insert with hotkeys | Type `\` inside `$…$` for autocomplete, or `Ctrl+Shift+M` for the picker |
+| **Auto-split** | Press Enter at end of a paragraph → new cell below, cursor ready | Just press Enter after finishing a paragraph |
+
+---
+
+## Demo Gallery
+
+<!-- One entry per key feature. Record GIFs from the Extension Development Host (F5). -->
+
+### Inline rendering + auto-split
+
+<p align="center"><img src="demo-render.gif" width="100%"></p>
+
+Prose and math render when you leave a cell. Auto-split creates new cells as you write — no mouse, no toolbar, no modal dialogs.
+
+### Code execution
+
+<p align="center"><img src="demo-run.gif" width="100%"></p>
+
+`{code-cell}` blocks discover your Python environment and stream output live. No Jupyter extension required.
+
+### Knowledge graph
+
+<p align="center"><img src="demo-graph.gif" width="100%"></p>
+
+`[[wikilinks]]` and `{cite}` references become graph edges. Navigate your book by structure, not by file tree.
+
+---
+
+## Keyboard Shortcuts
+
+### Writing & cells
 
 | Key | Action |
 |-----|--------|
-| **Enter** | Split cell at cursor — or insert newline if inside a fence or empty cell |
+| **Enter** | Split cell at cursor (or newline inside a fence / empty cell) |
 | **Alt+Enter** | Insert a literal newline without splitting |
 | **Shift+Enter** | Run cell and advance |
-
-### Cells
-
-| Key | Action |
-|-----|--------|
-| **Ctrl+D** | Delete selected cell (when not in edit mode) |
-| **Ctrl+Shift+E** | Insert executable `{{code-cell}}` below |
+| **Ctrl+Shift+E** | Insert executable `{code-cell}` below |
 | **Ctrl+Shift+D** | Insert display-only code block below |
+| **Ctrl+D** | Delete selected cell (when not in edit mode) |
 
-### Math input
-
-| Key | Action |
-|-----|--------|
-| **`\`** inside `$...$` | Autocomplete — shows searchable symbol list inline |
-| **Ctrl+Shift+M** | Open symbol picker (recently used first) |
-
-Type `\al` inside a math block and VS Code's autocomplete shows `\alpha`, `\aleph`, etc. The sidebar **Math Palette** panel (Explorer) collects symbols you've written and lets you click to re-insert them.
-
-### Zotero
+### Math & citations
 
 | Key | Action |
 |-----|--------|
-| **Alt+Shift+Z** | Open citation picker and insert `` {{cite}}`key` `` |
+| **`\`** inside `$…$` | Autocomplete LaTeX symbols |
+| **Ctrl+Shift+M** | Open math symbol picker (recently used first) |
+| **Alt+Shift+Z** | Open Zotero citation picker |
 
 ### Kernel management (Command Palette)
 
@@ -97,36 +107,36 @@ Type `\al` inside a math block and VS Code's autocomplete shows `\alpha`, `\alep
 
 ---
 
-## Requirements
+## Repository Structure
 
-- **VS Code 1.85+**
-- **Python extension** (`ms-python.python`) — for environment discovery
-- **A Python environment** — only needed to run code cells. Editing, rendering, and saving work without one.
-
-Optional: [Zotero](https://www.zotero.org/) + [Better BibTeX](https://retorque.re/zotero-better-bibtex/) for citation support.
+```
+myst-notebook/
+├── src/
+│   ├── extension.ts          # activation entry point
+│   ├── mystSerializer.ts     # lossless .md ↔ notebook round-trip
+│   ├── kernelSession.ts      # Jupyter kernel lifecycle
+│   ├── core/                 # pure functions: split, serialize, tags, templates
+│   └── graph/                # knowledge graph (foam core + webview + VS Code features)
+├── renderer/                 # notebook renderer (markdown-it + KaTeX)
+├── media/                    # walkthrough images
+├── test-fixtures/            # sample MyST workspace for smoke tests
+├── .github/workflows/        # CI (build + test) and release (vsce publish)
+├── esbuild.js                # bundle script
+├── package.json              # extension manifest
+└── README.md
+```
 
 ---
 
-## Getting started
+## Limitations
 
-1. Open a `.md` file that is part of a MyST / Jupyter Book project (one with a `myst.yml`).
-2. Click **Open as MyST Notebook** in the editor toolbar (or run **MyST: Open as MyST Notebook** from the Command Palette). MyST also offers this automatically the first time you open a `.md` in a MyST workspace.
-3. Start writing.
-
-To make MyST Notebook the default for `.md` files: open **Configure default editor for '.md'** in the Command Palette and select **MyST Notebook**.
-
----
-
-## Known limitations
-
-- **Relative local image paths** in `figure`/`image` directives may not resolve in the renderer sandbox. Absolute `https://` URLs and data URIs work.
+- **Relative local image paths** in `figure`/`image` directives may not resolve in the renderer sandbox. Use absolute `https://` URLs or data URIs.
 - **CRLF line endings** are out of scope for v1 (LF assumed).
-- **Multi-block auto-split** (a cell that already contains blank-line-separated blocks) uses a structural rewrite; VS Code may leave the new cell selected but not enter edit mode — a VS Code limitation with no reliable workaround.
-- **Inter-block normalization**: blank-line separation is canonicalized to one blank line on first save. This is a one-time change; already-canonical files round-trip exactly.
+- **Blank-line normalization** between blocks is canonicalized to one blank line on first save. Already-canonical files round-trip byte-for-byte.
 
 ---
 
-## Why I built this
+## Why I Built This
 
 I write technical documents in MyST, and every existing workflow forced the same compromise: write blind in a plain editor, then run a build to see if it looked right. Preview panes split my attention; Jupyter pulled me into a browser; Quarto and JupyterBook made me stop and compile. None of them let me *write* the way the document actually reads.
 
@@ -134,34 +144,15 @@ So I built the tool I wanted — the source file **is** the notebook, rendered i
 
 ---
 
-## Support this project
+## Connect
 
-MyST Notebook is free and open source, and it always will be. If it saves you time or you'd like to see it keep improving, you can support the work:
-
-[![Sponsor](https://img.shields.io/badge/Sponsor-%E2%9D%A4-db61a2?logo=github)](https://github.com/sponsors/RequieMa)
-
-Starring the [repo](https://github.com/RequieMa/myst-notebook) and sharing it with others who write in MyST helps just as much — it's how the project reaches the people who need it.
-
----
-
-## Development
-
-```bash
-npm install
-npm run build   # bundle via esbuild
-npm test        # vitest (pure-core serializer tests)
-```
-
-**F5** in VS Code launches the Extension Development Host.
-
-```bash
-npx @vscode/vsce package   # produces myst-notebook-x.x.x.vsix
-```
-
-C4 architecture diagrams live in [`docs/diagrams/`](docs/diagrams/README.md).
+| Platform | Link |
+|----------|------|
+| GitHub | [@RequieMa](https://github.com/RequieMa) |
+| Blog | [requiema.github.io](https://requiema.github.io) |
 
 ---
 
 ## License
 
-MIT
+MIT © 2026 [zengma](https://github.com/RequieMa)
