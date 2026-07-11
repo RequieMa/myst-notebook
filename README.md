@@ -48,7 +48,7 @@ To make MyST Notebook the default for `.md` files: **Command Palette → Configu
 
 | Capability | What it does | How to use |
 |------------|-------------|------------|
-| **Inline rendering** | Prose, math (`$…$`, `$$…$$`), admonitions, figures — all render in place when you move focus | Just type, then move to another cell |
+| **Inline rendering** | Prose and math (`$…$`, `$$…$$`) render in place when you move focus | Just type, then move to another cell |
 | **Executable code cells** | `{code-cell}` blocks run through Jupyter, output streams live | `Ctrl+Shift+E` to insert, `Shift+Enter` to run |
 | **Knowledge graph** | `[[wikilinks]]`, backlinks, and a D3 force graph — MyST-aware, including `{cite}` roles as nodes | `Ctrl+Shift+G` to open the graph |
 | **Zotero citations** | Insert `{cite}` references from your Zotero library, one command to configure | Run **MyST: Configure Zotero Citations**, then `Alt+Shift+Z` |
@@ -134,6 +134,7 @@ myst-notebook/
 
 ## Limitations
 
+- **MyST colon-fence directives** (`:::{note}`, `:::{warning}`, `:::{figure}`, etc.) are NOT rendered inline in the notebook editor. VS Code's notebook renderer only supports inline-level markdown, not block-level custom syntax. The directives appear as plain source text while editing — they are correctly processed by `jupyter-book build` at build time. Write the directive syntax as you normally would; the compiler handles the final rendering.
 - **Relative local image paths** in `figure`/`image` directives may not resolve in the renderer sandbox. Use absolute `https://` URLs or data URIs.
 - **CRLF line endings** are out of scope for v1 (LF assumed).
 - **Blank-line normalization** between blocks is canonicalized to one blank line on first save. Already-canonical files round-trip byte-for-byte.

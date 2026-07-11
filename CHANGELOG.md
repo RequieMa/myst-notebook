@@ -2,8 +2,10 @@
 
 ## [Unreleased] — smoke-test polish
 
+### Known limitations (documented, not fixed)
+- **MyST colon-fence directives** (`:::{note}`, `:::{warning}`, etc.) are NOT rendered inline. VS Code's notebook renderer uses `md.renderInline()` which fundamentally cannot process block-level or core-level markdown-it rules. The directives remain as plain source text — `jupyter-book build` handles final rendering. Documented in README § Limitations.
+
 ### Fixed
-- **Admonition rendering** (`:::{note}`, `:::{warning}`, etc.) now renders as styled blockquotes in notebook cells, using a `renderInline` monkey-patch since VS Code's notebook renderer skips both block and core markdown-it rules.
 - **Math picker stores linted symbols**: `\mathbf R` is now corrected to `\mathbf{R}` before storage via a dedicated `collectMathPaletteItems` pipeline (extract → lint → tokenize).
 - **Homebrew Python detection**: externally-managed Homebrew Python now uses `pip install --break-system-packages` instead of failing.
 - **uv-managed Python detection**: `~/.local/bin/` and `.venv/bin/` Pythons now use `uv pip install` instead of `pip install`.
