@@ -12,3 +12,15 @@ renderer/generated/
 # Scratch files — one-time process docs, not shipped
 _scratch/
 test-fixtures/smoke-workspace/.vscode/
+
+# Environment & secrets
+.env*
+
+# Logs
+*.log
+
+# Coverage output
+coverage/
+
+# TypeScript incremental build cache
+*.tsbuildinfo

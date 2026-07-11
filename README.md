@@ -1,13 +1,12 @@
-<sub>🌐 <b>English</b> <!-- · <a href="README-cn.md">中文</a> --></sub>
+<sub>🌐 <b>English</b> · <a href="README-cn.md">中文</a></sub>
 
 # MyST Notebook
 
-> *"Write MyST Markdown e-books in VS Code — rendered inline, no preview pane, no build step."*
+> *"Writing in VS Code was painful. Why cannot we only focus on typing? Here I am"*
 
 <!-- Support badges — always at the top, next to the value prop -->
 [![Ko-fi](https://img.shields.io/badge/Support-ko--fi-FF5E5B?style=flat&logo=ko-fi&logoColor=white)](https://ko-fi.com/requiema)
 [![Afdian](https://img.shields.io/badge/Support-爱发电-946CE6?style=flat)](https://afdian.com/a/requiema)
-
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![VS Code](https://img.shields.io/badge/VS_Code-1.85+-blue.svg)](https://code.visualstudio.com/)
 <!-- Coming: VS Code Marketplace version badge -->
@@ -16,7 +15,7 @@
 
 **Edit MyST Markdown (`.md`) in VS Code's notebook editor.** Prose renders in place as you type, math renders inline with KaTeX, and `{code-cell}` blocks run through Jupyter — all in one pane, no separate preview, no build step.
 
-[Install](#quick-start) · [Features](#whats-here) · [Shortcuts](#keyboard-shortcuts) · [Structure](#repository-structure)
+[Install](#quick-start) · [Features](#whats-here) · [Zotero](#zotero-citations) · [Shortcuts](#keyboard-shortcuts) · [Structure](#repository-structure)
 
 ---
 
@@ -78,6 +77,56 @@ Prose and math render when you leave a cell. Auto-split creates new cells as you
 <p align="center"><img src="demo-graph.gif" width="100%"></p>
 
 `[[wikilinks]]` and `{cite}` references become graph edges. Navigate your book by structure, not by file tree.
+
+---
+
+## Zotero Citations
+
+MyST Notebook works with your Zotero library to insert `` {cite}`key` `` references as you write — one command to configure, then pick and cite without leaving the keyboard.
+
+### Prerequisites
+
+1. **Zotero desktop** — installed and running (the picker talks to `127.0.0.1:23119`, a local server that only exists while Zotero is open)
+2. **Better BibTeX** — Zotero plugin (Tools → Plugins, search "Better BibTeX for Zotero")
+3. **Citation Picker for Zotero** (`mblode.zotero`) — recommended alongside MyST Notebook; VS Code will suggest installing both together
+
+### Automated Setup
+
+Run **MyST: Configure Zotero Citations** from the Command Palette in a MyST workspace. The command:
+
+- Detects whether `mblode.zotero` is installed (offers to install if absent)
+- Writes the correct `` `{cite}` `` CAYW URL to `.vscode/settings.json`
+- Lets you switch between `{cite}` / `{cite:p}` / `{cite:t}` roles
+
+Insert citations with **Alt+Shift+Z** — the Zotero picker pops up, select a reference, press Enter.
+
+> **WSL / remote users:** if the automated setup fails, set the URL manually in VS Code settings. See the full recipe at
+> [the citation setup guide](https://github.com/RequieMa/myst-notebook/blob/main/docs/citation-setup.md).
+
+### Verify It Works
+
+With Zotero running, test the endpoint:
+
+```bash
+curl -s "http://127.0.0.1:23119/better-bibtex/cayw?format=json"
+```
+
+Pick a reference in the Zotero popup → JSON describing your selection is returned. Then test the MyST template — run **Alt+Shift+Z** in a `.md` file → a `` {cite}`key` `` lands at your cursor.
+
+### Make Citations Resolve (Reference List)
+
+`` {cite}`key` `` is only half the job — the key must resolve against a `.bib` file for a reference list to appear at build time.
+
+1. **Auto-export a `.bib`** from Zotero: right-click your collection → Export → **Better BibTeX** → check **"Keep updated"** → save as e.g. `references.bib`
+2. **Register it** in `myst.yml`:
+   ```yaml
+   project:
+     bibliography:
+       - references.bib
+   ```
+3. **Build** with `jupyter book build --html` — the reference list appears per-page, only for works actually cited.
+
+> ⚠️ **Troubleshooting:** if the picker says "could not connect to Zotero" but Zotero is running, check that `zotero-citation-picker.port` was saved correctly. Don't press Escape in the picker — it produces the same error message as a dead server. Always press **Enter** on a selection.
 
 ---
 

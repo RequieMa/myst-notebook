@@ -30,6 +30,9 @@
   "extensionDependencies": [
     "ms-python.python"
   ],
+  "extensionPack": [
+    "mblode.zotero"
+  ],
   "activationEvents": [
     "workspaceContains:**/myst.yml",
     "onLanguage:markdown"
