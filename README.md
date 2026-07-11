@@ -33,7 +33,7 @@
 
 Install from the VS Code Marketplace, open a MyST `.md`, and start writing.
 
-1. Install **MyST Notebook** from the [VS Code Marketplace](#) <!-- link after publish -->
+1. Install **MyST Notebook** from the [VS Code Marketplace](#) <!-- link after publish --> **NOT READY YET!**
 2. Open a `.md` file in a MyST / Jupyter Book project (one with a `myst.yml`)
 3. Click **Open as MyST Notebook** in the editor toolbar, or right-click the tab → **Reopen Editor With… → MyST Notebook**
 
@@ -100,8 +100,7 @@ Run **MyST: Configure Zotero Citations** from the Command Palette in a MyST work
 
 Insert citations with **Alt+Shift+Z** — the Zotero picker pops up, select a reference, press Enter.
 
-> **WSL / remote users:** if the automated setup fails, set the URL manually in VS Code settings. See the full recipe at
-> [the citation setup guide](https://github.com/RequieMa/myst-notebook/blob/main/docs/citation-setup.md).
+> **WSL2 / Windows 10 users:** the automated setup will NOT work out of the box — WSL2's NAT prevents reaching Zotero's `127.0.0.1:23119`. Follow the [WSL2 setup guide](docs/citation-setup.md#wsl2--windows-10--required-setup) before anything else. **Windows 11 users** can try [mirrored networking](docs/citation-setup.md#wsl2--windows-10--required-setup) instead (simpler, not yet verified).
 
 ### Verify It Works
 
@@ -216,9 +215,3 @@ So I built the tool I wanted — the source file **is** the notebook, rendered i
 | 📱 | 公众号 | 镇魂曲麦 |
 
 </div>
-
----
-
-## License
-
-MIT © 2026 [zengma](https://github.com/RequieMa)

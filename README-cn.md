@@ -33,7 +33,7 @@
 
 从 VS Code Marketplace 安装，打开 MyST `.md` 文件，即开即写。
 
-1. 从 [VS Code Marketplace](#) 安装 **MyST Notebook** <!-- 发布后更新链接 -->
+1. 从 [VS Code Marketplace](#) 安装 **MyST Notebook** <!-- 发布后更新链接 --> **尚未发布！**
 2. 在 MyST / Jupyter Book 项目中打开 `.md` 文件（含有 `myst.yml` 的项目）
 3. 点击编辑器工具栏中的 **Open as MyST Notebook**，或右键标签页 → **Reopen Editor With… → MyST Notebook**
 
@@ -100,8 +100,7 @@ MyST Notebook 可以连接你的 Zotero 文献库，在写作时插入 `` {cite}
 
 使用 **Alt+Shift+Z** 插入引用——Zotero 选择器弹出，选择文献，按 Enter 即可。
 
-> **WSL / 远程用户：** 如果自动配置失败，可手动设置 URL。完整配置步骤参见
-> [引用配置指南](https://github.com/RequieMa/myst-notebook/blob/main/docs/citation-setup.md)。
+> **WSL2 / Windows 10 用户：** 自动配置无法直接使用——WSL2 的 NAT 网络无法访问 Zotero 的 `127.0.0.1:23119`。请先按照 [WSL2 配置指南](docs/citation-setup.md#wsl2--windows-10--required-setup) 完成网络设置。**Windows 11 用户**可尝试 [mirrored networking](docs/citation-setup.md#wsl2--windows-10--required-setup)（更简单，尚未验证）。
 
 ### 验证是否正常
 
@@ -217,8 +216,3 @@ myst-notebook/
 
 </div>
 
----
-
-## 许可证
-
-MIT © 2026 [zengma](https://github.com/RequieMa)

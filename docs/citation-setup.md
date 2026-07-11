@@ -11,6 +11,135 @@ template URLs are in [`citation-recipe.md`](./citation-recipe.md).
 
 ---
 
+## WSL2 / Windows 10 — Required Setup
+
+> **If you use VS Code in WSL2 on Windows 10, read this section first.**
+> The automated setup and the standard instructions below will NOT work without
+> these steps, because WSL2 sits in a separate NAT-ed network. Zotero runs on
+> Windows and binds its HTTP server to `127.0.0.1:23119` — unreachable from
+> inside WSL.
+
+**Windows 11 users:** you can skip this section. Enable **mirrored networking**
+in `%USERPROFILE%\.wslconfig` instead:
+```ini
+[wsl2]
+networkingMode=mirrored
+```
+Then `wsl --shutdown` and reopen. With mirrored mode, `127.0.0.1` inside WSL
+reaches Windows `127.0.0.1` directly — no forwarding needed. (Not verified;
+Windows 11 22H2+ required.)
+
+### Why this is needed (read once)
+
+```
+┌─ WSL2 VM ─────────────────────┐     ┌─ Windows ─────────────────────┐
+│                                │     │                               │
+│  VS Code extension             │     │  Zotero + Better BibTeX       │
+│  (mblode.zotero)               │     │  listens on 127.0.0.1:23119   │
+│       │                        │     │       ↑                       │
+│       ▼                        │     │       │                       │
+│  127.0.0.1:23119  ─── ✗ ──────────────→ 127.0.0.1 ≠ same machine   │
+│  (WSL's own localhost)         │     │                               │
+│                                │     │                               │
+│  Fix:                          │     │                               │
+│  ① socat forwards              │     │  ② netsh portproxy forwards   │
+│  127.0.0.1:23119 ─────────────→ 172.17.80.1:23119 ──→ 127.0.0.1:23119│
+│                                │     │                               │
+└────────────────────────────────┘     └───────────────────────────────┘
+```
+
+Two hops are needed:
+1. **WSL → Windows host IP** (socat, inside WSL)
+2. **Windows external interface → Zotero's localhost** (netsh portproxy, on Windows)
+
+### Step W1 — Windows: netsh portproxy (one-time, admin)
+
+Open **PowerShell as Administrator** and run:
+
+```powershell
+netsh interface portproxy add v4tov4 listenport=23119 listenaddress=0.0.0.0 connectport=23119 connectaddress=127.0.0.1
+```
+
+This forwards `0.0.0.0:23119` (all interfaces) → `127.0.0.1:23119` (Zotero).
+
+> ⚠️ **CRITICAL ordering:** Zotero must be running and listening on
+> `127.0.0.1:23119` **before** you add this rule. If netsh takes the port first,
+> Zotero's HTTP server won't start. If you ever need to re-add it:
+> 1. Delete the rule: `netsh interface portproxy delete v4tov4 listenport=23119 listenaddress=0.0.0.0`
+> 2. Restart Zotero — confirm it's listening
+> 3. Re-add the rule
+
+Allow the port through Windows Firewall (same admin PowerShell):
+
+```powershell
+netsh advfirewall firewall add rule name="Zotero BBT for WSL" dir=in action=allow protocol=TCP localport=23119
+```
+
+To verify the rule is active:
+```powershell
+netsh interface portproxy show all | findstr 23119
+# Expected: 0.0.0.0         23119       127.0.0.1       23119
+```
+
+### Step W2 — WSL: socat auto-start
+
+Add to `~/.zshrc` (or `~/.bashrc`):
+
+```bash
+# Zotero BBT forward → Windows host (for VS Code citation picker in WSL2)
+if ! ss -tlnp | grep -q '127.0.0.1:23119'; then
+  WINDOWS_IP=$(grep nameserver /etc/resolv.conf | awk '{print $2}')
+  socat TCP-LISTEN:23119,fork,reuseaddr,bind=127.0.0.1 TCP:${WINDOWS_IP}:23119 &
+fi
+```
+
+Install socat if needed: `sudo apt install socat`
+
+This runs once per shell session — the port check prevents duplicates when
+opening new terminals. The Windows host IP is read dynamically from
+`/etc/resolv.conf` so it survives WSL restarts.
+
+### Step W3 — VS Code: set the CAYW URL
+
+In your workspace `.vscode/settings.json`:
+
+```json
+"zotero-citation-picker.port": "http://127.0.0.1:23119/better-bibtex/cayw?format=eta&template=%7Bcite%7D%60%3C%25%3D%20it.items.map(i%20%3D%3E%20i.citationKey).join('%2C')%20%25%3E%60"
+```
+
+Or run **MyST: Configure Zotero Citations** from the Command Palette (it writes
+the same URL).
+
+### Step W4 — Verify
+
+With Zotero running and socat active:
+
+```bash
+curl -s --max-time 5 "http://127.0.0.1:23119/better-bibtex/cayw?format=eta&template=%7Bcite%7D%60%3C%25%3D%20it.items.map(i%20%3D%3E%20i.citationKey).join('%2C')%20%25%3E%60"
+```
+
+A Zotero picker window should pop up on Windows. Select a reference and press
+**Enter**. The terminal should print something like `` {cite}`smith2020` ``.
+
+Then in VS Code: open a `.md` file, press **Alt+Shift+Z**, pick a reference,
+press Enter. `` {cite}`key` `` should land at your cursor.
+
+### WSL Troubleshooting
+
+| Symptom | Likely cause | Fix |
+|---------|-------------|-----|
+| `curl` exits 7 (connection refused) | netsh rule not added | Run Step W1 in admin PowerShell |
+| `curl` exits 28 (timeout) | Windows Firewall blocking | Run the `netsh advfirewall` command in Step W1 |
+| `curl` exits 52 or 56 (empty/reset) | Zotero not running, or netsh added before Zotero started | See "CRITICAL ordering" in Step W1 — delete rule, restart Zotero, re-add |
+| Works in terminal but not VS Code | socat not running in VS Code's terminal session | Open a new integrated terminal in VS Code, or run `source ~/.zshrc` |
+
+---
+
+## Standard Setup (native Windows / Mac / Linux)
+
+> If you completed the WSL2 section above, skip to [Step 2](#step-2--confirm-a-myst-template-renders-cite) —
+> your endpoint is already confirmed.
+
 ## Prerequisites (you set these up)
 
 1. **Zotero desktop** installed and **running**.
