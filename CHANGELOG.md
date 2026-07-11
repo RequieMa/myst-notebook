@@ -1,5 +1,23 @@
 # Changelog
 
+## [Unreleased] — smoke-test polish
+
+### Fixed
+- **Admonition rendering** (`:::{note}`, `:::{warning}`, etc.) now renders as styled blockquotes in notebook cells, using a `renderInline` monkey-patch since VS Code's notebook renderer skips both block and core markdown-it rules.
+- **Math picker stores linted symbols**: `\mathbf R` is now corrected to `\mathbf{R}` before storage via a dedicated `collectMathPaletteItems` pipeline (extract → lint → tokenize).
+- **Homebrew Python detection**: externally-managed Homebrew Python now uses `pip install --break-system-packages` instead of failing.
+- **uv-managed Python detection**: `~/.local/bin/` and `.venv/bin/` Pythons now use `uv pip install` instead of `pip install`.
+
+### Changed
+- **Ctrl+Shift+E** now toggles the current cell to a Code cell (instead of inserting a new cell). Consistent with **Ctrl+Shift+R** which toggles to Markdown.
+- **Math Palette** panel is now always visible (removed the overly strict `when: "notebookType"` clause).
+
+### Added
+- **MyST: Reinstall Runtime** command — clears the saved default kernel so the Python environment picker re-appears on next code execution.
+- **MyST: Convert Cell to Markdown** (`Ctrl+Shift+R`) — toggle a code cell back to Markdown.
+- **MyST: Convert Cell to Code** (`Ctrl+Shift+E`) — toggle a Markdown cell to an executable Code cell.
+- **Progress notification** during `ipykernel`/`jupyter-server` install — a VS Code progress bar now shows while packages are downloading.
+
 ## [0.1.0] - 2026-07-06
 
 ### Added

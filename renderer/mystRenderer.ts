@@ -11,7 +11,6 @@ import { parseFigureBody } from '../src/core/mystFigure';
  */
 export const activate = () => ({
   extendMarkdownIt(md: MarkdownIt) {
-    console.warn('[mystRenderer] extendMarkdownIt called — custom renderer is loading');
     ensureKatexCss();
 
     // Inline math: $...$  (single-dollar, no surrounding space inside the delims)
@@ -91,12 +90,14 @@ export const activate = () => ({
     };
 
     // MyST colon-fence directives: `:::{name}` ... `:::`.
-    // VS Code notebook renderer only uses md.renderInline() for markup cells,
-    // so BLOCK rules never fire. Use a CORE rule instead to pre-process the
-    // markdown source: rewrite colon fences into blockquotes before any other
-    // rule runs. Blockquotes render correctly in VS Code's built-in renderer.
-    md.core.ruler.before('normalize', 'myst_colon_fence', (state) => {
-      state.src = state.src.replace(
+    // VS Code's notebook renderer uses md.renderInline() for markup cells,
+    // which skips BOTH block.ruler AND core.ruler. The only viable hook is
+    // to monkey-patch md.renderInline itself — pre-process the source text
+    // before it enters markdown-it's inline parser. Rewrite colon fences
+    // into blockquotes, which VS Code's built-in renderer handles natively.
+    const origRenderInline = md.renderInline.bind(md);
+    md.renderInline = function (src: string, env?: any) {
+      const preprocessed = src.replace(
         /^:{3,}\{(\w+)\}\s*?\n([\s\S]*?)^:{3,}\s*$/gm,
         (_: string, name: string, body: string) => {
           const label = ADMONITION_LABELS[name] ?? name;
@@ -104,11 +105,12 @@ export const activate = () => ({
           return prefix + body.trimEnd().replace(/\n/g, '\n> ') + '\n';
         }
       );
-      return true;
-    });
-    // Deprecated block-rule approach (kept for reference — unreachable in
-    // notebook renderer). TODO: remove after confirming core rule works.
-    /* md.block.ruler.before('fence', 'myst_colon_fence', (state, startLine, endLine, silent) => {
+      return origRenderInline(preprocessed, env);
+    };
+    // Dead code — block rules are unreachable in notebook renderer.
+    // biome-ignore: dead code kept for reference
+    /* obsoleted: md.block.ruler before + myst_directive renderer
+    md.block.ruler.before('fence', 'myst_colon_fence', (state, startLine, endLine, silent) => {
       const startPos = state.bMarks[startLine] + state.tShift[startLine];
       const lineText = state.src.slice(startPos, state.eMarks[startLine]).trimEnd();
       console.warn('[myst_colon_fence] called line=' + startLine + ' text=' + JSON.stringify(lineText.slice(0, 80)));

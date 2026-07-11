@@ -24,12 +24,5 @@ a + 2
 
 $\alpha$
 
-
-
-
-
-
-
-
-
-
+```{code-cell} python
+```
