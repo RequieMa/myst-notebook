@@ -34,8 +34,14 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('myst-notebook.interruptKernel', () =>
       controller.interruptActiveKernel()
     ),
+    vscode.commands.registerCommand('myst-notebook.reinstallRuntime', () =>
+      controller.reinstallRuntime()
+    ),
     vscode.commands.registerCommand('myst-notebook.convertToMarkdown', () =>
       controller.convertActiveCellToMarkdown()
+    ),
+    vscode.commands.registerCommand('myst-notebook.convertToCode', () =>
+      controller.convertActiveCellToCode()
     )
   );
 

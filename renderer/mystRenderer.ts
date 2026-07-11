@@ -91,10 +91,24 @@ export const activate = () => ({
     };
 
     // MyST colon-fence directives: `:::{name}` ... `:::`.
-    // Block rule approach works correctly (confirmed in isolation): markdown-it
-    // passes endLine = state.lineMax so blank lines inside the body are reachable.
-    // Body is rendered via md.renderInline to avoid recursion through md.render.
-    md.block.ruler.before('fence', 'myst_colon_fence', (state, startLine, endLine, silent) => {
+    // VS Code notebook renderer only uses md.renderInline() for markup cells,
+    // so BLOCK rules never fire. Use a CORE rule instead to pre-process the
+    // markdown source: rewrite colon fences into blockquotes before any other
+    // rule runs. Blockquotes render correctly in VS Code's built-in renderer.
+    md.core.ruler.before('normalize', 'myst_colon_fence', (state) => {
+      state.src = state.src.replace(
+        /^:{3,}\{(\w+)\}\s*?\n([\s\S]*?)^:{3,}\s*$/gm,
+        (_: string, name: string, body: string) => {
+          const label = ADMONITION_LABELS[name] ?? name;
+          const prefix = '> **' + label + ':** ';
+          return prefix + body.trimEnd().replace(/\n/g, '\n> ') + '\n';
+        }
+      );
+      return true;
+    });
+    // Deprecated block-rule approach (kept for reference — unreachable in
+    // notebook renderer). TODO: remove after confirming core rule works.
+    /* md.block.ruler.before('fence', 'myst_colon_fence', (state, startLine, endLine, silent) => {
       const startPos = state.bMarks[startLine] + state.tShift[startLine];
       const lineText = state.src.slice(startPos, state.eMarks[startLine]).trimEnd();
       console.warn('[myst_colon_fence] called line=' + startLine + ' text=' + JSON.stringify(lineText.slice(0, 80)));
@@ -134,7 +148,6 @@ export const activate = () => ({
     md.renderer.rules['myst_directive'] = (tokens, idx) => {
       const name = tokens[idx].info;
       const body = tokens[idx].content;
-      console.warn('[myst_directive] rendering directive=' + name + ' bodyLen=' + body.length);
       const arg = (tokens[idx].meta as { arg?: string } | undefined)?.arg ?? '';
 
       // figure/image: render a real <figure>/<img> using the opener-line
@@ -148,17 +161,11 @@ export const activate = () => ({
         const { options, caption } = parseFigureBody(body);
         const src = md.utils.escapeHtml(arg);
         const alt = md.utils.escapeHtml(options.alt ?? '');
-        // Only honor a width that matches a strict CSS-length whitelist. This
-        // guards against CSS injection: escapeHtml neutralizes " and < but NOT
-        // ; : ( ), so a crafted :width: could otherwise inject extra rules.
-        // Emit as `width:<value>` while KEEPING IMG_STYLE's max-width:100% so
-        // the image stays responsively capped. Invalid/absent → default sizing.
         const widthStyle =
           options.width && WIDTH_RE.test(options.width)
             ? `width:${md.utils.escapeHtml(options.width)};`
             : '';
         const img = `<img src="${src}" alt="${alt}" style="${IMG_STYLE}${widthStyle}">`;
-        // image has no caption; figure appends a <figcaption>.
         const figcaption =
           name === 'figure' && caption
             ? `<figcaption style="${FIGCAPTION_STYLE}">`
@@ -170,7 +177,6 @@ export const activate = () => ({
 
       const label = ADMONITION_LABELS[name] ?? name;
       const style = ADMONITION_STYLES[name] ?? ADMONITION_STYLES['_generic'];
-      // Render body paragraphs: split on blank lines, render each line inline.
       const paragraphs = body.split(/\n\n+/).filter(p => p.trim());
       const renderedBody = paragraphs
         .map(p => '<p>' + renderInlineLines(md, p) + '</p>')
@@ -180,6 +186,7 @@ export const activate = () => ({
         + `<div class="myst-admonition-body">${renderedBody}</div>`
         + `</div>\n`;
     };
+    */
 
     return md;
   },

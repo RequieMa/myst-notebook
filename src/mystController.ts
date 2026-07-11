@@ -267,6 +267,38 @@ export class MystController {
     await vscode.workspace.applyEdit(edit);
   }
 
+  /** Command handler: toggle the current cell to a Code cell (Python). */
+  async convertActiveCellToCode(): Promise<void> {
+    const editor = vscode.window.activeNotebookEditor;
+    if (!editor || editor.notebook.notebookType !== 'myst-notebook') return;
+
+    const sel = editor.selection;
+    if (sel.isEmpty) return;
+    const cell = editor.notebook.cellAt(sel.start);
+    if (cell.kind === vscode.NotebookCellKind.Code) return; // already Code
+
+    const edit = new vscode.WorkspaceEdit();
+    edit.set(editor.notebook.uri, [
+      vscode.NotebookEdit.replaceCells(
+        new vscode.NotebookRange(sel.start, sel.start + 1),
+        [new vscode.NotebookCellData(vscode.NotebookCellKind.Code, cell.document.getText(), 'python')]
+      ),
+    ]);
+    await vscode.workspace.applyEdit(edit);
+  }
+
+  /** Command handler: clear default kernel + sessions so next run re-prompts. */
+  async reinstallRuntime(): Promise<void> {
+    await this.memento.update(DEFAULT_ENV_KEY, undefined);
+    for (const s of this.sessions.values()) {
+      void s.dispose();
+    }
+    this.sessions.clear();
+    vscode.window.showInformationMessage(
+      'MyST Notebook: default kernel cleared. Run a code cell to re-pick a Python environment.'
+    );
+  }
+
   /** Command handler: restart the active notebook's kernel, clearing its state. */
   async restartActiveKernel(): Promise<void> {
     const notebook = vscode.window.activeNotebookEditor?.notebook;

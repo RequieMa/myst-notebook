@@ -105,6 +105,11 @@
         "title": "MyST: Interrupt Kernel"
       },
       {
+        "command": "myst-notebook.reinstallRuntime",
+        "title": "MyST: Reinstall Runtime (pick new Python)",
+        "category": "MyST"
+      },
+      {
         "command": "myst-notebook.insertNewline",
         "title": "MyST: Insert Newline"
       },
@@ -116,6 +121,11 @@
       {
         "command": "myst-notebook.convertToMarkdown",
         "title": "MyST: Convert Cell to Markdown",
+        "category": "MyST"
+      },
+      {
+        "command": "myst-notebook.convertToCode",
+        "title": "MyST: Convert Cell to Code",
         "category": "MyST"
       }
     ],
@@ -136,7 +146,7 @@
         "when": "notebookType == 'myst-notebook' && editorTextFocus"
       },
       {
-        "command": "myst-notebook.insertExecutableCell",
+        "command": "myst-notebook.convertToCode",
         "key": "ctrl+shift+e",
         "when": "notebookType == 'myst-notebook' && notebookEditorFocused"
       },
