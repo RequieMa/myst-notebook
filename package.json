@@ -112,6 +112,11 @@
         "command": "myst-notebook.openAsNotebook",
         "title": "Open as MyST Notebook",
         "category": "MyST"
+      },
+      {
+        "command": "myst-notebook.convertToMarkdown",
+        "title": "MyST: Convert Cell to Markdown",
+        "category": "MyST"
       }
     ],
     "keybindings": [
@@ -149,6 +154,11 @@
         "command": "notebook.cell.delete",
         "key": "ctrl+d",
         "when": "notebookType == 'myst-notebook' && notebookEditorFocused && !inputFocus"
+      },
+      {
+        "command": "myst-notebook.convertToMarkdown",
+        "key": "ctrl+shift+r",
+        "when": "notebookType == 'myst-notebook' && notebookEditorFocused"
       }
     ],
     "menus": {

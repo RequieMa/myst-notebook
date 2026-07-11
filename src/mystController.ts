@@ -245,60 +245,26 @@ export class MystController {
       }
     }
 
-    // Bug 2: when Shift+Enter executes the last cell and it's a code cell,
-    // VS Code auto-creates another code cell below. For MyST notebooks the
-    // default should be Markdown — most cells are prose. Schedule a one-shot
-    // check after VS Code's auto-insert to convert the new empty code cell.
-    this.scheduleAutoCellFix(notebook, cells);
   }
 
-  private scheduleAutoCellFix(
-    notebook: vscode.NotebookDocument,
-    cells: readonly vscode.NotebookCell[]
-  ): void {
-    const executedLastCodeCell = cells.some(
-      (c) =>
-        c.kind === vscode.NotebookCellKind.Code &&
-        c.index === notebook.cellCount - 1
-    );
-    log(
-      `[controller] autoCellFix: triggered=${executedLastCodeCell} cellCount=${notebook.cellCount} cellKinds=${cells.map(c => c.kind).join(',')} cellIndexes=${cells.map(c => c.index).join(',')}`
-    );
-    if (!executedLastCodeCell) return;
+  /** Command handler: convert the currently focused cell to a Markdown cell. */
+  async convertActiveCellToMarkdown(): Promise<void> {
+    const editor = vscode.window.activeNotebookEditor;
+    if (!editor || editor.notebook.notebookType !== 'myst-notebook') return;
 
-    const notebookUri = notebook.uri.toString();
-    setTimeout(async () => {
-      // Re-fetch: the document may have changed since execution ended.
-      const nb = vscode.workspace.notebookDocuments.find(
-        (n) => n.uri.toString() === notebookUri
-      );
-      if (!nb || nb.cellCount === 0) { log('[controller] autoCellFix: notebook gone or empty'); return; }
-      const lastCell = nb.cellAt(nb.cellCount - 1);
-      log(
-        `[controller] autoCellFix: lastCell kind=${lastCell.kind} textLen=${lastCell.document.getText().length} cellCount=${nb.cellCount}`
-      );
-      // Only replace the auto-created cell: empty code cell at the end.
-      if (
-        lastCell.kind === vscode.NotebookCellKind.Code &&
-        lastCell.document.getText() === ''
-      ) {
-        const edit = new vscode.WorkspaceEdit();
-        edit.set(nb.uri, [
-          vscode.NotebookEdit.replaceCells(
-            new vscode.NotebookRange(nb.cellCount - 1, nb.cellCount),
-            [
-              new vscode.NotebookCellData(
-                vscode.NotebookCellKind.Markup,
-                '',
-                'markdown'
-              ),
-            ]
-          ),
-        ]);
-        await vscode.workspace.applyEdit(edit);
-        log('[controller] auto-cell-fix: replaced empty code cell with markup');
-      }
-    }, 100);
+    const sel = editor.selection;
+    if (sel.isEmpty) return;
+    const cell = editor.notebook.cellAt(sel.start);
+    if (cell.kind === vscode.NotebookCellKind.Markup) return; // already Markdown
+
+    const edit = new vscode.WorkspaceEdit();
+    edit.set(editor.notebook.uri, [
+      vscode.NotebookEdit.replaceCells(
+        new vscode.NotebookRange(sel.start, sel.start + 1),
+        [new vscode.NotebookCellData(vscode.NotebookCellKind.Markup, cell.document.getText(), 'markdown')]
+      ),
+    ]);
+    await vscode.workspace.applyEdit(edit);
   }
 
   /** Command handler: restart the active notebook's kernel, clearing its state. */

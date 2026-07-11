@@ -16,8 +16,6 @@ $$
 sth
 :::
 
-
-
 ```{code-cell} python
 :tags: [hide-input]
 a = 5

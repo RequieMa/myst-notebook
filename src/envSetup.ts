@@ -111,61 +111,62 @@ export async function ensureRuntime(spec: KernelSpecInfo): Promise<boolean> {
     return false;
   }
 
-  // Build + run the install command.
-  const { command, args } = buildInstallCommand(interpreterPath, missing);
-  log('[envSetup] ensureRuntime: chosen command = ' + [command, ...args].join(' '));
+  // Run the install inside a progress notification — pip downloads can take
+  // several minutes, and without a visible indicator the user has no feedback.
+  const exitCode = await vscode.window.withProgress<number | undefined>(
+    {
+      location: vscode.ProgressLocation.Notification,
+      title: `MyST Notebook: installing ${missing.join(', ')}…`,
+      cancellable: false,
+    },
+    async () => {
+      const { command, args } = buildInstallCommand(interpreterPath, missing);
+      log('[envSetup] ensureRuntime: chosen command = ' + [command, ...args].join(' '));
 
-  let exitCode: number | undefined;
-  try {
-    const shellExec = new vscode.ShellExecution(
-      { value: command, quoting: vscode.ShellQuoting.Strong },
-      args.map((a) => ({ value: a, quoting: vscode.ShellQuoting.Strong }))
-    );
+      try {
+        const shellExec = new vscode.ShellExecution(
+          { value: command, quoting: vscode.ShellQuoting.Strong },
+          args.map((a) => ({ value: a, quoting: vscode.ShellQuoting.Strong }))
+        );
 
-    const task = new vscode.Task(
-      { type: 'shell' },
-      vscode.TaskScope.Workspace,
-      'Install MyST runtime',
-      'MyST Notebook',
-      shellExec
-    );
+        const task = new vscode.Task(
+          { type: 'shell' },
+          vscode.TaskScope.Workspace,
+          'Install MyST runtime',
+          'MyST Notebook',
+          shellExec
+        );
 
-    const exe = await vscode.tasks.executeTask(task);
+        const exe = await vscode.tasks.executeTask(task);
 
-    // Await a REAL exit code. onDidEndTaskProcess fires only when a process was
-    // actually launched (gives e.exitCode). If the task ends WITHOUT launching a
-    // process (bad command, missing shell, spawn failure) VS Code fires
-    // onDidEndTask but NOT onDidEndTaskProcess — without that fallback the await
-    // would never settle and the listener would leak. We register BOTH and dispose
-    // ALL listeners through a SINGLE cleanup path (`done`).
-    exitCode = await new Promise<number | undefined>((resolve) => {
-      const disposables: vscode.Disposable[] = [];
-      const done = (code: number | undefined) => {
-        disposables.forEach((d) => d.dispose());
-        resolve(code);
-      };
-      disposables.push(
-        vscode.tasks.onDidEndTaskProcess((e) => {
-          if (e.execution === exe) {
-            done(e.exitCode);
-          }
-        })
-      );
-      disposables.push(
-        vscode.tasks.onDidEndTask((e) => {
-          if (e.execution === exe) {
-            log('[envSetup] ensureRuntime: task ended without launching a process');
-            done(undefined);
-          }
-        })
-      );
-    });
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    log('[envSetup] ensureRuntime: error running install task: ' + message);
-    await vscode.window.showWarningMessage(messageFor('installTaskError'));
-    return false;
-  }
+        return await new Promise<number | undefined>((resolve) => {
+          const disposables: vscode.Disposable[] = [];
+          const done = (code: number | undefined) => {
+            disposables.forEach((d) => d.dispose());
+            resolve(code);
+          };
+          disposables.push(
+            vscode.tasks.onDidEndTaskProcess((e) => {
+              if (e.execution === exe) done(e.exitCode);
+            })
+          );
+          disposables.push(
+            vscode.tasks.onDidEndTask((e) => {
+              if (e.execution === exe) {
+                log('[envSetup] ensureRuntime: task ended without launching a process');
+                done(undefined);
+              }
+            })
+          );
+        });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        log('[envSetup] ensureRuntime: error running install task: ' + message);
+        await vscode.window.showWarningMessage(messageFor('installTaskError'));
+        return undefined;
+      }
+    }
+  );
 
   log('[envSetup] ensureRuntime: install process exited with code=' + String(exitCode));
 
