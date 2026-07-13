@@ -3,7 +3,7 @@
   "displayName": "MyST Notebook",
   "description": "Edit MyST Markdown (.md) in VS Code's notebook editor: rendered prose, math, and executable code cells.",
   "version": "0.1.1",
-  "publisher": "78f2e995-33d7-6a7d-b00b-c3e8d36f580d",
+  "publisher": "RequieMa",
   "license": "MIT",
   "icon": "icon.png",
   "galleryBanner": {
