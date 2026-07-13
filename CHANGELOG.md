@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1] - 2026-07-12
+
+### Changed
+- **Notebook priority changed from `option` to `default`** — `.md` files now automatically open as MyST Notebook without needing "Reopen With" each time.
+- **Publisher ID** updated to match Marketplace publisher.
+- **Icon** updated to RequieMa logomark (dark).
+
 ## [Unreleased] — smoke-test polish
 
 ### Known limitations (documented, not fixed)
