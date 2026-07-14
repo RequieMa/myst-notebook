@@ -1,4 +1,4 @@
-<sub>🌐 <b>English</b> · <a href="README-cn.md">中文</a></sub>
+<sub>🌐 <b>English</b> · <a href="https://github.com/RequieMa/myst-notebook/blob/main/README-cn.md">中文</a></sub>
 
 # MyST Notebook
 
@@ -7,7 +7,7 @@
 <!-- Support badges — always at the top, next to the value prop -->
 [![Ko-fi](https://img.shields.io/badge/Support-ko--fi-FF5E5B?style=flat&logo=ko-fi&logoColor=white)](https://ko-fi.com/requiema)
 [![Afdian](https://img.shields.io/badge/Support-爱发电-946CE6?style=flat)](https://afdian.com/a/requiema)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/RequieMa/myst-notebook/blob/main/LICENSE)
 [![VS Code](https://img.shields.io/badge/VS_Code-1.85+-blue.svg)](https://code.visualstudio.com/)
 <!-- Coming: VS Code Marketplace version badge -->
 
@@ -24,7 +24,7 @@
   Record 20–30 seconds of the Extension Development Host.
 -->
 <p align="center">
-  <img src="demo.gif" alt="MyST Notebook · prose rendering, math, and code execution inline in VS Code" width="100%">
+  <img src="https://raw.githubusercontent.com/RequieMa/myst-notebook/main/demo.gif" alt="MyST Notebook · prose rendering, math, and code execution inline in VS Code" width="100%">
 </p>
 
 ---
@@ -62,19 +62,19 @@ To make MyST Notebook the default for `.md` files: **Command Palette → Configu
 
 ### Inline rendering + auto-split
 
-<p align="center"><img src="demo-render.gif" width="100%"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/RequieMa/myst-notebook/main/demo-render.gif" width="100%"></p>
 
 Prose and math render when you leave a cell. Auto-split creates new cells as you write — no mouse, no toolbar, no modal dialogs.
 
 ### Code execution
 
-<p align="center"><img src="demo-run.gif" width="100%"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/RequieMa/myst-notebook/main/demo-run.gif" width="100%"></p>
 
 `{code-cell}` blocks discover your Python environment and stream output live. No Jupyter extension required.
 
 ### Knowledge graph
 
-<p align="center"><img src="demo-graph.gif" width="100%"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/RequieMa/myst-notebook/main/demo-graph.gif" width="100%"></p>
 
 `[[wikilinks]]` and `{cite}` references become graph edges. Navigate your book by structure, not by file tree.
 
@@ -100,7 +100,7 @@ Run **MyST: Configure Zotero Citations** from the Command Palette in a MyST work
 
 Insert citations with **Alt+Shift+Z** — the Zotero picker pops up, select a reference, press Enter.
 
-> **WSL2 / Windows 10 users:** the automated setup will NOT work out of the box — WSL2's NAT prevents reaching Zotero's `127.0.0.1:23119`. Follow the [WSL2 setup guide](docs/citation-setup.md#wsl2--windows-10--required-setup) before anything else. **Windows 11 users** can try [mirrored networking](docs/citation-setup.md#wsl2--windows-10--required-setup) instead (simpler, not yet verified).
+> **WSL2 / Windows 10 users:** the automated setup will NOT work out of the box — WSL2's NAT prevents reaching Zotero's `127.0.0.1:23119`. Follow the [WSL2 setup guide](https://github.com/RequieMa/myst-notebook/blob/main/docs/citation-setup.md#wsl2--windows-10--required-setup) before anything else. **Windows 11 users** can try [mirrored networking](https://github.com/RequieMa/myst-notebook/blob/main/docs/citation-setup.md#wsl2--windows-10--required-setup) instead (simpler, not yet verified).
 
 ### Verify It Works
 
