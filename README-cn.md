@@ -1,4 +1,4 @@
-<sub>🌐 <a href="https://github.com/RequieMa/myst-notebook/blob/main/README.md">English</a> · <b>中文</b></sub>
+<sub>🌐 <a href="https://github.com/RequieMa/myst-notebook/blob/Master/README.md">English</a> · <b>中文</b></sub>
 
 # MyST Notebook
 
@@ -7,7 +7,7 @@
 <!-- Support badges — always at the top, next to the value prop -->
 [![Ko-fi](https://img.shields.io/badge/Support-ko--fi-FF5E5B?style=flat&logo=ko-fi&logoColor=white)](https://ko-fi.com/requiema)
 [![Afdian](https://img.shields.io/badge/Support-爱发电-946CE6?style=flat)](https://afdian.com/a/requiema)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/RequieMa/myst-notebook/blob/main/LICENSE)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/RequieMa/myst-notebook/blob/Master/LICENSE)
 [![VS Code](https://img.shields.io/badge/VS_Code-1.85+-blue.svg)](https://code.visualstudio.com/)
 <!-- Coming: VS Code Marketplace version badge -->
 
@@ -24,7 +24,7 @@
   对着 Extension Development Host 录 20-30 秒。
 -->
 <p align="center">
-  <img src="https://raw.githubusercontent.com/RequieMa/myst-notebook/main/demo.gif" alt="MyST Notebook · 正文渲染、数学公式、代码执行内联显示在 VS Code 中" width="100%">
+  <img src="https://raw.githubusercontent.com/RequieMa/myst-notebook/Master/demo.gif" alt="MyST Notebook · 正文渲染、数学公式、代码执行内联显示在 VS Code 中" width="100%">
 </p>
 
 ---
@@ -62,19 +62,19 @@
 
 ### 内联渲染 + 自动分割
 
-<p align="center"><img src="https://raw.githubusercontent.com/RequieMa/myst-notebook/main/demo-render.gif" width="100%"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/RequieMa/myst-notebook/Master/demo-render.gif" width="100%"></p>
 
 正文和数学公式在离开单元格时自动渲染。自动分割在你写作时创建新单元格——无需鼠标，无需工具栏，无需弹窗。
 
 ### 代码执行
 
-<p align="center"><img src="https://raw.githubusercontent.com/RequieMa/myst-notebook/main/demo-run.gif" width="100%"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/RequieMa/myst-notebook/Master/demo-run.gif" width="100%"></p>
 
 `{code-cell}` 代码块自动发现你的 Python 环境并实时流式输出。无需安装 Jupyter 扩展。
 
 ### 知识图谱
 
-<p align="center"><img src="https://raw.githubusercontent.com/RequieMa/myst-notebook/main/demo-graph.gif" width="100%"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/RequieMa/myst-notebook/Master/demo-graph.gif" width="100%"></p>
 
 `[[wikilinks]]` 和 `{cite}` 引用成为图谱中的边。按结构而非文件树浏览你的书。
 
@@ -100,7 +100,7 @@ MyST Notebook 可以连接你的 Zotero 文献库，在写作时插入 `` {cite}
 
 使用 **Alt+Shift+Z** 插入引用——Zotero 选择器弹出，选择文献，按 Enter 即可。
 
-> **WSL2 / Windows 10 用户：** 自动配置无法直接使用——WSL2 的 NAT 网络无法访问 Zotero 的 `127.0.0.1:23119`。请先按照 [WSL2 配置指南](https://github.com/RequieMa/myst-notebook/blob/main/docs/citation-setup.md#wsl2--windows-10--required-setup) 完成网络设置。**Windows 11 用户**可尝试 [mirrored networking](https://github.com/RequieMa/myst-notebook/blob/main/docs/citation-setup.md#wsl2--windows-10--required-setup)（更简单，尚未验证）。
+> **WSL2 / Windows 10 用户：** 自动配置无法直接使用——WSL2 的 NAT 网络无法访问 Zotero 的 `127.0.0.1:23119`。请先按照 [WSL2 配置指南](https://github.com/RequieMa/myst-notebook/blob/Master/docs/citation-setup.md#wsl2--windows-10--required-setup) 完成网络设置。**Windows 11 用户**可尝试 [mirrored networking](https://github.com/RequieMa/myst-notebook/blob/Master/docs/citation-setup.md#wsl2--windows-10--required-setup)（更简单，尚未验证）。
 
 ### 验证是否正常
 

@@ -23,51 +23,59 @@ export function classifyRuntime(probe: RuntimeProbe): string[] {
   return missing;
 }
 
+/** A single install command with its arguments. */
+export interface InstallCommand {
+  command: string;
+  args: string[];
+}
+
+/** Cross-platform conda env path pattern: `/envs/<name>/` or `\envs\<name>\`. */
+const CONDA_ENV_RE = /[/\\]envs[/\\]([^/\\]+)[/\\]/;
+
 /**
- * Derive a conda env name from an interpreter path containing `/envs/<name>/`.
- * Returns undefined when not confidently parseable (we then fall back to pip).
+ * Extract a conda env name from an interpreter path. Returns undefined when the
+ * path doesn't match a conda env layout (base conda, or non-conda altogether).
  */
 function condaEnvName(interpreterPath: string): string | undefined {
-  const match = interpreterPath.match(/\/envs\/([^/]+)\//);
+  const match = CONDA_ENV_RE.exec(interpreterPath);
   return match?.[1];
 }
 
 /**
- * Build the install command for the missing pip package subset.
- * - conda env with a parseable name -> `conda install -n <name> -y <pkgs>`
- * - uv-managed Python (detected via path heuristic) -> `<interpreter> -m uv pip install <pkgs>`
- * - everything else                 -> `<interpreter> -m pip install <pkgs>`
+ * Build the ordered list of install commands to try.
+ *
+ * The chain encodes the fallback priority:
+ *   1. conda install  — if the path looks like a conda env
+ *   2. pip install    — always included (<interpreter> -m pip install)
+ *   3. uv pip install — last resort; caller bootstraps uv if missing
  *
  * Precondition: pkgs is non-empty (the caller skips install when nothing is missing).
  */
-export function buildInstallCommand(
+export function buildInstallCommands(
   interpreterPath: string,
   pkgs: string[]
-): { command: string; args: string[] } {
-  if (interpreterPath.includes('/envs/')) {
-    const envName = condaEnvName(interpreterPath);
-    if (envName) {
-      return { command: 'conda', args: ['install', '-n', envName, '-y', ...pkgs] };
-    }
-  }
-  // uv-managed Python (pep 668 externally-managed via uv): use `uv pip install`.
-  if (isUvManagedPath(interpreterPath)) {
-    return { command: 'uv', args: ['pip', 'install', '--python', interpreterPath, ...pkgs] };
-  }
-  // Homebrew Python: also externally-managed, but uv respects this as well.
-  // Fall back to pip with --break-system-packages (what brew's own error suggests).
-  if (interpreterPath.includes('/.linuxbrew/') || interpreterPath.includes('/homebrew/')) {
-    return { command: interpreterPath, args: ['-m', 'pip', 'install', '--break-system-packages', ...pkgs] };
-  }
-  return { command: interpreterPath, args: ['-m', 'pip', 'install', ...pkgs] };
-}
+): InstallCommand[] {
+  const commands: InstallCommand[] = [];
 
-/** Heuristic: interpreter lives under a path typical of uv-installed Python. */
-function isUvManagedPath(interpreterPath: string): boolean {
-  return (
-    interpreterPath.includes('/.local/bin/') ||
-    interpreterPath.includes('/.venv/bin/')
-  );
+  const envName = condaEnvName(interpreterPath);
+  if (envName) {
+    commands.push({
+      command: 'conda',
+      args: ['install', '-n', envName, '-y', ...pkgs],
+    });
+  }
+
+  commands.push({
+    command: interpreterPath,
+    args: ['-m', 'pip', 'install', ...pkgs],
+  });
+
+  commands.push({
+    command: 'uv',
+    args: ['pip', 'install', '--python', interpreterPath, ...pkgs],
+  });
+
+  return commands;
 }
 
 export type InstallOutcomeKind = 'ok' | 'nonZeroExit' | 'exitZeroStillMissing';
@@ -105,6 +113,7 @@ export type FailureKind =
   | 'installNonZero'
   | 'installStillMissing'
   | 'installTaskError'
+  | 'installFailed'
   | 'serverStartFailed'
   | 'restartFailed'
   | 'noActiveKernel';
@@ -117,6 +126,7 @@ export const FAILURE_KINDS: readonly FailureKind[] = [
   'installNonZero',
   'installStillMissing',
   'installTaskError',
+  'installFailed',
   'serverStartFailed',
   'restartFailed',
   'noActiveKernel',
@@ -137,6 +147,8 @@ const MESSAGES: Record<FailureKind, string> = {
     'MyST Notebook: runtime install completed but ipykernel/jupyter-server are still not importable. Check the "MyST Notebook" output channel.',
   installTaskError:
     'MyST Notebook: runtime install error. Check the "MyST Notebook" output channel for details.',
+  installFailed:
+    'MyST Notebook: failed to install ipykernel and jupyter-server. Check the "MyST Notebook" output channel for details.',
   serverStartFailed:
     'MyST Notebook: failed to start a Jupyter kernel. See the "MyST Notebook" output for details.',
   restartFailed:

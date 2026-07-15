@@ -1,29 +1,17 @@
 # Changelog
 
-## [0.1.2] - 2026-07-15
+## [0.1.3] - 2026-07-15
 
 ### Fixed
-- **Marketplace README links**: all relative paths (images, cross-references, language switcher) changed to absolute `https://github.com/RequieMa/myst-notebook/...` URLs so they resolve correctly on the VS Code Marketplace.
-- **Demo GIFs committed to repo** — `demo.gif`, `demo-run.gif`, `demo-graph.gif`, `demo-render.gif`, `demo-math.gif` are now tracked so Marketplace can display them.
-
-## [0.1.1] - 2026-07-12
-
-### Changed
-- **Notebook priority changed from `option` to `default`** — `.md` files now automatically open as MyST Notebook without needing "Reopen With" each time.
-- **Publisher ID** updated to match Marketplace publisher.
-- **Icon** updated to RequieMa logomark (dark).
-
-## [Unreleased] — smoke-test polish
-
-### Known limitations (documented, not fixed)
-- **MyST colon-fence directives** (`:::{note}`, `:::{warning}`, etc.) are NOT rendered inline. VS Code's notebook renderer uses `md.renderInline()` which fundamentally cannot process block-level or core-level markdown-it rules. The directives remain as plain source text — `jupyter-book build` handles final rendering. Documented in README § Limitations.
-
-### Fixed
+- **Empty file opens with zero cells** — brand-new `.md` files now auto-inject a starter markup cell so the user has somewhere to type. Previously `textToCells('')` returned an empty array, producing a notebook with no editable surface.
+- **Overly aggressive `uv` heuristic removed** — `~/.local/bin/` and `.venv/bin/` Pythons were falsely assumed to be uv-managed, causing `uv pip install` to fail for pyenv, standard-library venv, and other non-uv environments. These now default to the correct `<interpreter> -m pip install`.
 - **Math picker stores linted symbols**: `\mathbf R` is now corrected to `\mathbf{R}` before storage via a dedicated `collectMathPaletteItems` pipeline (extract → lint → tokenize).
-- **Homebrew Python detection**: externally-managed Homebrew Python now uses `pip install --break-system-packages` instead of failing.
-- **uv-managed Python detection**: `~/.local/bin/` and `.venv/bin/` Pythons now use `uv pip install` instead of `pip install`.
 
 ### Changed
+- **Kernel install fallback chain: conda → pip → uv**. The extension now tries each approach in order — conda first (for conda env paths), then `<interpreter> -m pip install`, then `uv pip install` as last resort. Each step falls through to the next on failure.
+- **Cross-platform conda env detection** — Windows conda paths (`\envs\<name>\`) are now recognized alongside Unix paths (`/envs/<name>/`).
+- **uv auto-bootstrapped** — when pip fails and `uv` is not on PATH, the extension silently installs uv via the official install script and retries with it.
+- **Removed `--break-system-packages` special case** — Homebrew Python now follows the standard chain (pip → uv fallback) instead of a hardcoded flag.
 - **Ctrl+Shift+E** now toggles the current cell to a Code cell (instead of inserting a new cell). Consistent with **Ctrl+Shift+R** which toggles to Markdown.
 - **Math Palette** panel is now always visible (removed the overly strict `when: "notebookType"` clause).
 
@@ -32,6 +20,23 @@
 - **MyST: Convert Cell to Markdown** (`Ctrl+Shift+R`) — toggle a code cell back to Markdown.
 - **MyST: Convert Cell to Code** (`Ctrl+Shift+E`) — toggle a Markdown cell to an executable Code cell.
 - **Progress notification** during `ipykernel`/`jupyter-server` install — a VS Code progress bar now shows while packages are downloading.
+
+### Known limitations (documented, not fixed)
+- **MyST colon-fence directives** (`:::{note}`, `:::{warning}`, etc.) are NOT rendered inline. VS Code's notebook renderer uses `md.renderInline()` which fundamentally cannot process block-level or core-level markdown-it rules. The directives remain as plain source text — `jupyter-book build` handles final rendering. Documented in README § Limitations.
+
+## [0.1.2] - 2026-07-15
+
+### Fixed
+- **Marketplace README links**: all relative paths (images, cross-references, language switcher) changed to absolute GitHub URLs so they resolve on the VS Code Marketplace.
+- **Absolute URLs use correct branch name** — changed `main` → `Master` in all `github.com` and `raw.githubusercontent.com` URLs to match the repo's actual default branch.
+- **Demo GIFs committed to repo** — `demo.gif`, `demo-run.gif`, `demo-graph.gif`, `demo-render.gif`, `demo-math.gif` are now tracked so Marketplace can display them.
+
+## [0.1.1] - 2026-07-12
+
+### Changed
+- **Notebook priority changed from `option` to `default`** — `.md` files now automatically open as MyST Notebook without needing "Reopen With" each time.
+- **Publisher ID** updated to match Marketplace publisher.
+- **Icon** updated to RequieMa logomark (dark).
 
 ## [0.1.0] - 2026-07-06
 

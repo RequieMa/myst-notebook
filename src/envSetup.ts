@@ -15,12 +15,13 @@
  */
 
 import * as vscode from 'vscode';
-import { execFile } from 'child_process';
+import { execFile, exec } from 'child_process';
 import { log } from './log';
 import type { KernelSpecInfo } from './core/kernelRanking';
 import {
   classifyRuntime,
-  buildInstallCommand,
+  buildInstallCommands,
+  type InstallCommand,
   installOutcome,
   messageFor,
 } from './core/failurePolicy';
@@ -66,7 +67,111 @@ export async function probeRuntime(
 }
 
 // ---------------------------------------------------------------------------
-// Step 2: ensure both packages present (prompt + install missing subset)
+// Step 2: install helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Run a single install command as a VS Code shell task. Returns the exit code,
+ * or `undefined` if the task never launched a process.
+ */
+async function runShellTask(cmd: InstallCommand): Promise<number | undefined> {
+  try {
+    const shellExec = new vscode.ShellExecution(
+      { value: cmd.command, quoting: vscode.ShellQuoting.Strong },
+      cmd.args.map((a) => ({ value: a, quoting: vscode.ShellQuoting.Strong }))
+    );
+
+    const task = new vscode.Task(
+      { type: 'shell' },
+      vscode.TaskScope.Workspace,
+      'Install MyST runtime',
+      'MyST Notebook',
+      shellExec
+    );
+
+    const exe = await vscode.tasks.executeTask(task);
+
+    return await new Promise<number | undefined>((resolve) => {
+      const disposables: vscode.Disposable[] = [];
+      const done = (code: number | undefined) => {
+        disposables.forEach((d) => d.dispose());
+        resolve(code);
+      };
+      disposables.push(
+        vscode.tasks.onDidEndTaskProcess((e) => {
+          if (e.execution === exe) done(e.exitCode);
+        })
+      );
+      disposables.push(
+        vscode.tasks.onDidEndTask((e) => {
+          if (e.execution === exe) {
+            log('[envSetup] task ended without launching a process');
+            done(undefined);
+          }
+        })
+      );
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    log('[envSetup] error running install task: ' + message);
+    return undefined;
+  }
+}
+
+/** Human-readable label for an install command (for logging and progress). */
+function commandLabel(cmd: InstallCommand, interpreterPath: string): string {
+  if (cmd.command === interpreterPath) return 'pip';
+  return cmd.command;
+}
+
+/**
+ * Ensure `uv` is available on PATH. If not found, bootstrap it via the
+ * official install script. Returns true if uv is ready to use afterwards.
+ *
+ * Bootstrapping is silent (within the progress notification) — the user
+ * already opted into "install what's needed".
+ */
+async function ensureUvAvailable(): Promise<boolean> {
+  // Fast path: uv already on PATH.
+  try {
+    await execFileAsync('uv', ['--version']);
+    return true;
+  } catch {
+    /* not found — bootstrap below */
+  }
+
+  log('[envSetup] uv not found on PATH, bootstrapping…');
+
+  try {
+    // On Linux/macOS, use the curl install script. On Windows this path
+    // will fail, but pip is usually available there so we rarely reach uv.
+    await execAsync('curl -LsSf https://astral.sh/uv/install.sh | sh');
+    // Verify the install succeeded.
+    await execFileAsync('uv', ['--version']);
+    log('[envSetup] uv bootstrap succeeded');
+    return true;
+  } catch (err) {
+    log(`[envSetup] uv bootstrap failed: ${String(err)}`);
+    return false;
+  }
+}
+
+/** Promisified execFile (we only care about success/failure, not stdout). */
+function execFileAsync(cmd: string, args: string[]): Promise<void> {
+  return new Promise((resolve, reject) => {
+    execFile(cmd, args, (err) => (err ? reject(err) : resolve()));
+  });
+}
+
+/** Promisified exec (for piped shell commands like curl | sh). */
+function execAsync(command: string): Promise<{ stdout: string; stderr: string }> {
+  return new Promise((resolve, reject) => {
+    exec(command, (err, stdout, stderr) => (err ? reject(err) : resolve({ stdout, stderr })));
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Step 3: ensure both packages present (prompt + install missing subset)
 // ---------------------------------------------------------------------------
 
 /**
@@ -111,81 +216,52 @@ export async function ensureRuntime(spec: KernelSpecInfo): Promise<boolean> {
     return false;
   }
 
-  // Run the install inside a progress notification — pip downloads can take
-  // several minutes, and without a visible indicator the user has no feedback.
-  const exitCode = await vscode.window.withProgress<number | undefined>(
-    {
-      location: vscode.ProgressLocation.Notification,
-      title: `MyST Notebook: installing ${missing.join(', ')}…`,
-      cancellable: false,
-    },
-    async () => {
-      const { command, args } = buildInstallCommand(interpreterPath, missing);
-      log('[envSetup] ensureRuntime: chosen command = ' + [command, ...args].join(' '));
+  const commands = buildInstallCommands(interpreterPath, missing);
 
-      try {
-        const shellExec = new vscode.ShellExecution(
-          { value: command, quoting: vscode.ShellQuoting.Strong },
-          args.map((a) => ({ value: a, quoting: vscode.ShellQuoting.Strong }))
-        );
+  // Try each command in order. First success wins.
+  for (const cmd of commands) {
+    const label = commandLabel(cmd, interpreterPath);
 
-        const task = new vscode.Task(
-          { type: 'shell' },
-          vscode.TaskScope.Workspace,
-          'Install MyST runtime',
-          'MyST Notebook',
-          shellExec
-        );
-
-        const exe = await vscode.tasks.executeTask(task);
-
-        return await new Promise<number | undefined>((resolve) => {
-          const disposables: vscode.Disposable[] = [];
-          const done = (code: number | undefined) => {
-            disposables.forEach((d) => d.dispose());
-            resolve(code);
-          };
-          disposables.push(
-            vscode.tasks.onDidEndTaskProcess((e) => {
-              if (e.execution === exe) done(e.exitCode);
-            })
-          );
-          disposables.push(
-            vscode.tasks.onDidEndTask((e) => {
-              if (e.execution === exe) {
-                log('[envSetup] ensureRuntime: task ended without launching a process');
-                done(undefined);
-              }
-            })
-          );
-        });
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        log('[envSetup] ensureRuntime: error running install task: ' + message);
-        await vscode.window.showWarningMessage(messageFor('installTaskError'));
-        return undefined;
+    // Before trying uv, ensure it's on PATH. Silently bootstrap if missing.
+    if (cmd.command === 'uv') {
+      const uvReady = await vscode.window.withProgress(
+        { location: vscode.ProgressLocation.Notification, title: 'MyST Notebook: preparing uv…', cancellable: false },
+        async () => ensureUvAvailable()
+      );
+      if (!uvReady) {
+        log('[envSetup] ensureRuntime: uv not available, cannot use as fallback');
+        continue;
       }
     }
-  );
 
-  log('[envSetup] ensureRuntime: install process exited with code=' + String(exitCode));
+    log(`[envSetup] ensureRuntime: trying ${label}`);
+    const exitCode = await vscode.window.withProgress<number | undefined>(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: `MyST Notebook: installing ${missing.join(', ')} via ${label}…`,
+        cancellable: false,
+      },
+      async () => runShellTask(cmd)
+    );
 
-  if (exitCode !== 0) {
-    log('[envSetup] ensureRuntime: install failed (non-zero exit ' + String(exitCode) + ')');
-    await vscode.window.showWarningMessage(messageFor('installNonZero'));
-    return false;
+    log(`[envSetup] ensureRuntime: ${label} exited with code=${String(exitCode)}`);
+
+    if (exitCode === 0) {
+      const after = await probeRuntime(interpreterPath);
+      const outcome = installOutcome(0, after);
+      if (outcome.ok) {
+        log(`[envSetup] ensureRuntime: ${label} succeeded`);
+        return true;
+      }
+      log(
+        `[envSetup] ensureRuntime: ${label} exit 0 but re-probe still missing: ` +
+          `ipykernel=${after.ipykernel} jupyterServer=${after.jupyterServer}`
+      );
+    }
   }
 
-  const after = await probeRuntime(interpreterPath);
-  const outcome = installOutcome(exitCode, after);
-  if (outcome.ok) {
-    log('[envSetup] ensureRuntime: install succeeded, both packages now present');
-    return true;
-  }
-  log(
-    '[envSetup] ensureRuntime: install exited 0 but re-probe still missing: ' +
-      `ipykernel=${after.ipykernel} jupyterServer=${after.jupyterServer}`
-  );
-  await vscode.window.showWarningMessage(messageFor('installStillMissing'));
+  // None of the commands succeeded.
+  log('[envSetup] ensureRuntime: all install methods failed');
+  await vscode.window.showWarningMessage(messageFor('installFailed'));
   return false;
 }

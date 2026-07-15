@@ -8,7 +8,16 @@ const encoder = new TextEncoder();
 export class MystSerializer implements vscode.NotebookSerializer {
   deserializeNotebook(content: Uint8Array): vscode.NotebookData {
     const text = decoder.decode(content).replace(/\n$/, '');
-    const cells = textToCells(text).map(rawCellToData);
+    const rawCells = textToCells(text);
+    // Empty file (or whitespace-only): inject a single empty markup cell so the
+    // user has somewhere to type. Without this, the notebook opens with zero cells
+    // and VS Code's notebook editor has no surface to focus or edit.
+    if (rawCells.length === 0) {
+      return new vscode.NotebookData([
+        new vscode.NotebookCellData(vscode.NotebookCellKind.Markup, '', 'markdown'),
+      ]);
+    }
+    const cells = rawCells.map(rawCellToData);
     return new vscode.NotebookData(cells);
   }
 

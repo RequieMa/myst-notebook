@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   classifyRuntime,
-  buildInstallCommand,
+  buildInstallCommands,
   installOutcome,
   deriveCellSuccess,
   messageFor,
@@ -26,48 +26,80 @@ describe('classifyRuntime', () => {
   });
 });
 
-describe('buildInstallCommand', () => {
-  it('uses conda when /envs/<name>/ is parseable', () => {
-    expect(buildInstallCommand('/opt/conda/envs/myenv/bin/python', ['ipykernel'])).toEqual({
+describe('buildInstallCommands', () => {
+  it('conda env path → [conda, pip, uv] in that order', () => {
+    const cmds = buildInstallCommands('/opt/conda/envs/myenv/bin/python', ['ipykernel']);
+    expect(cmds).toHaveLength(3);
+    expect(cmds[0]).toEqual({
+      command: 'conda',
+      args: ['install', '-n', 'myenv', '-y', 'ipykernel'],
+    });
+    expect(cmds[1]).toEqual({
+      command: '/opt/conda/envs/myenv/bin/python',
+      args: ['-m', 'pip', 'install', 'ipykernel'],
+    });
+    expect(cmds[2]).toEqual({
+      command: 'uv',
+      args: ['pip', 'install', '--python', '/opt/conda/envs/myenv/bin/python', 'ipykernel'],
+    });
+  });
+
+  it('non-conda path → [pip, uv] (no conda entry)', () => {
+    const cmds = buildInstallCommands('/usr/bin/python3', ['ipykernel', 'jupyter-server']);
+    expect(cmds).toHaveLength(2);
+    expect(cmds[0]).toEqual({
+      command: '/usr/bin/python3',
+      args: ['-m', 'pip', 'install', 'ipykernel', 'jupyter-server'],
+    });
+    expect(cmds[1]).toEqual({
+      command: 'uv',
+      args: ['pip', 'install', '--python', '/usr/bin/python3', 'ipykernel', 'jupyter-server'],
+    });
+  });
+
+  it('conda env path with /envs/ but unparseable name → [pip, uv]', () => {
+    // /envs/ is present but no trailing segment → conda env name can't be extracted.
+    const cmds = buildInstallCommands('/weird/envs/', ['ipykernel']);
+    expect(cmds).toHaveLength(2);
+    expect(cmds[0].command).toBe('/weird/envs/'); // pip
+  });
+
+  it('pyenv path → [pip, uv] (not mistaken for conda or uv)', () => {
+    const cmds = buildInstallCommands('/home/user/.pyenv/versions/3.12.0/bin/python', ['ipykernel']);
+    expect(cmds).toHaveLength(2);
+    expect(cmds[0]).toEqual({
+      command: '/home/user/.pyenv/versions/3.12.0/bin/python',
+      args: ['-m', 'pip', 'install', 'ipykernel'],
+    });
+  });
+
+  it('standard venv path → [pip, uv] (not mistaken for uv-managed)', () => {
+    const cmds = buildInstallCommands('/home/user/project/.venv/bin/python', ['ipykernel']);
+    expect(cmds).toHaveLength(2);
+    expect(cmds[0]).toEqual({
+      command: '/home/user/project/.venv/bin/python',
+      args: ['-m', 'pip', 'install', 'ipykernel'],
+    });
+  });
+
+  it('Windows conda env path → [conda, pip, uv]', () => {
+    const cmds = buildInstallCommands(
+      'C:\\Users\\user\\miniconda3\\envs\\myenv\\python.exe',
+      ['ipykernel']
+    );
+    expect(cmds).toHaveLength(3);
+    expect(cmds[0]).toEqual({
       command: 'conda',
       args: ['install', '-n', 'myenv', '-y', 'ipykernel'],
     });
   });
-  it('falls back to pip-into-interpreter when no /envs/ segment', () => {
-    expect(buildInstallCommand('/usr/bin/python3', ['ipykernel', 'jupyter-server'])).toEqual({
-      command: '/usr/bin/python3',
-      args: ['-m', 'pip', 'install', 'ipykernel', 'jupyter-server'],
-    });
-  });
-  it('falls back to pip when /envs/ present but name not parseable', () => {
-    expect(buildInstallCommand('/weird/envs/', ['ipykernel'])).toEqual({
-      command: '/weird/envs/',
-      args: ['-m', 'pip', 'install', 'ipykernel'],
-    });
-  });
-  it('uses uv pip install when interpreter path is under a uv-managed prefix', () => {
-    expect(
-      buildInstallCommand('/home/user/.local/bin/python3.12', ['ipykernel', 'jupyter-server'])
-    ).toEqual({
-      command: 'uv',
-      args: ['pip', 'install', '--python', '/home/user/.local/bin/python3.12', 'ipykernel', 'jupyter-server'],
-    });
-  });
-  it('uses uv pip install when interpreter path contains .venv (uv venv)', () => {
-    expect(
-      buildInstallCommand('/home/user/project/.venv/bin/python', ['ipykernel'])
-    ).toEqual({
-      command: 'uv',
-      args: ['pip', 'install', '--python', '/home/user/project/.venv/bin/python', 'ipykernel'],
-    });
-  });
-  it('uses pip --break-system-packages when interpreter is Homebrew-managed', () => {
-    expect(
-      buildInstallCommand('/home/linuxbrew/.linuxbrew/bin/python3', ['ipykernel', 'jupyter-server'])
-    ).toEqual({
-      command: '/home/linuxbrew/.linuxbrew/bin/python3',
-      args: ['-m', 'pip', 'install', '--break-system-packages', 'ipykernel', 'jupyter-server'],
-    });
+
+  it('multiple packages are passed through to all commands', () => {
+    const cmds = buildInstallCommands('/usr/bin/python3', ['ipykernel', 'jupyter-server']);
+    for (const cmd of cmds) {
+      expect(cmd.args).toContain('ipykernel');
+      expect(cmd.args).toContain('jupyter-server');
+    }
   });
 });
 
