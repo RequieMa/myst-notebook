@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.1.2] - 2026-07-15
+
+### Fixed
+- **Marketplace README links**: all relative paths (images, cross-references, language switcher) changed to absolute `https://github.com/RequieMa/myst-notebook/...` URLs so they resolve correctly on the VS Code Marketplace.
+- **Demo GIFs committed to repo** — `demo.gif`, `demo-run.gif`, `demo-graph.gif`, `demo-render.gif`, `demo-math.gif` are now tracked so Marketplace can display them.
+
 ## [0.1.1] - 2026-07-12
 
 ### Changed
