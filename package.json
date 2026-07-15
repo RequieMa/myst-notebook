@@ -266,6 +266,7 @@
     "watch": "node esbuild.js --watch",
     "test": "vitest run",
     "test:integration": "node esbuild.js && tsc -p tsconfig.test.json && vscode-test",
+    "package": "node esbuild.js --production && vsce package",
     "vscode:prepublish": "node esbuild.js --production"
   },
   "devDependencies": {
@@ -276,6 +277,7 @@
     "@types/vscode": "^1.85.0",
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^3.9.2",
     "d3-color": "^3.1.0",
     "d3-force": "^3.0.0",
     "d3-scale": "^4.0.0",
