@@ -178,12 +178,16 @@ export const window = {
 
 export const commands = {
   executeCommand: (_command: string, ..._args: any[]): Promise<any> => Promise.resolve(),
+  registerCommand: (_command: string, _callback: (...args: any[]) => any, _thisArg?: any): { dispose: () => void } => ({
+    dispose: () => {},
+  }),
 };
 
 export const workspace = {
   applyEdit: (_edit: any): Promise<boolean> => Promise.resolve(true),
   onDidOpenNotebookDocument: createEvent<any>(),
   onDidCloseNotebookDocument: createEvent<any>(),
+  onDidChangeNotebookDocument: createEvent<any>(),
   notebookDocuments: [] as any[],
 };
 

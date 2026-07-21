@@ -85,10 +85,13 @@ export function registerCellStatusBar(
   );
 
   context.subscriptions.push(
-    vscode.notebooks.onDidChangeNotebookCells((e) => {
+    vscode.workspace.onDidChangeNotebookDocument((e) => {
       if (e.notebook.notebookType !== 'myst-notebook') return;
-      // Re-sync: onDidChangeNotebookCells fires for cell add, remove, move, and
-      // kind changes. Ensure items and disposable sync avoids leaking items.
+      // Only re-sync on structural changes (cells added/removed) — content
+      // changes don't affect the set of code cells.
+      if (!e.contentChanges.some((c) => c.addedCells.length > 0 || c.removedCells.length > 0)) {
+        return;
+      }
       ensureItems(e.notebook);
     }),
   );

@@ -18,7 +18,7 @@ describe('cellStatusBar', () => {
     // Reset event emitters so listeners do not accumulate across tests
     vscode.workspace.onDidOpenNotebookDocument.reset();
     vscode.workspace.onDidCloseNotebookDocument.reset();
-    vscode.notebooks.onDidChangeNotebookCells.reset();
+    vscode.workspace.onDidChangeNotebookDocument.reset();
 
     // Spy on createNotebookCellStatusBarItem: capture every created item.
     // Always chain from the original factory (not from a previous spy).
@@ -126,7 +126,10 @@ describe('cellStatusBar', () => {
 
     // Cell change: notebook now has no code cells → existing item disposed
     const emptyNb = notebookStub('file:///test.md', []);
-    vscode.notebooks.onDidChangeNotebookCells.fire({ notebook: emptyNb });
+    vscode.workspace.onDidChangeNotebookDocument.fire({
+      notebook: emptyNb,
+      contentChanges: [{ addedCells: [], removedCells: [codeCell(0, 'file:///test.md')] }],
+    });
     expect(disposedCount).toBe(1);
   });
 
