@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [0.1.4] - 2026-07-21
 
 ### Added
 - **▶ Run button on code cells** — every code cell now shows a `▶ Run` status bar item at its bottom-right corner. Click to execute that cell; the button shows `⏳ Running...` while the cell is in flight and disables itself to prevent duplicate runs.
