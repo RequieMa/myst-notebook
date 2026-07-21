@@ -48,7 +48,9 @@
 | 功能 | 说明 | 使用方式 |
 |------|------|----------|
 | **内联渲染** | 正文和数学公式（`$…$`、`$$…$$`）在焦点离开时原地渲染 | 只需输入，然后移动到另一个单元格 |
-| **可执行代码块** | `{code-cell}` 代码块通过 Jupyter 运行，输出实时流式显示 | `Ctrl+Shift+E` 插入，`Shift+Enter` 运行 |
+| **可执行代码块** | `{code-cell}` 代码块通过 Jupyter 运行，输出实时流式显示 | `Ctrl+Shift+E` 插入，`Shift+Enter` 运行，或点击单元格上的 `▶ Run` |
+| **▶ Run 按钮** | 每个代码单元格右下角显示 `▶ Run` 按钮 | 点击 `▶ Run` 即可执行该单元格 |
+| **单击编辑** | 单击任意单元格即可开始编辑 | 单击一次——无需双击 |
 | **知识图谱** | `[[wikilinks]]`、反向链接和 D3 力导向图——支持 MyST，`{cite}` 角色可作为图谱节点 | `Ctrl+Shift+G` 打开图谱 |
 | **Zotero 引用** | 从你的 Zotero 库中插入 `{cite}` 引用，一条命令完成配置 | 运行 **MyST: Configure Zotero Citations**，然后 `Alt+Shift+Z` |
 | **数学符号面板** | 收藏常用 LaTeX 符号，快捷键插入 | 在 `$…$` 中输入 `\` 触发自动补全，或 `Ctrl+Shift+M` 打开选择器 |
@@ -138,7 +140,8 @@ curl -s "http://127.0.0.1:23119/better-bibtex/cayw?format=json"
 | **Enter** | 在光标处分割单元格（在代码块 / 空单元格内则为换行） |
 | **Alt+Enter** | 插入文字换行（不分割） |
 | **Shift+Enter** | 运行单元格并前进到下一个 |
-| **Ctrl+Shift+E** | 在下方插入可执行 `{code-cell}` |
+| **Ctrl+Shift+E** | 将当前单元格转换为代码单元格 |
+| **Ctrl+Shift+R** | 将当前单元格转换为 Markdown 单元格 |
 | **Ctrl+Shift+D** | 在下方插入仅展示的代码块 |
 | **Ctrl+D** | 删除选中的单元格（非编辑模式下） |
 
@@ -166,7 +169,12 @@ myst-notebook/
 ├── src/
 │   ├── extension.ts          # 激活入口
 │   ├── mystSerializer.ts     # 无损 .md ↔ notebook 双向转换
+│   ├── mystController.ts     # 单元格执行编排
 │   ├── kernelSession.ts      # Jupyter 内核生命周期管理
+│   ├── cellStatusBar.ts      # 代码单元格 ▶ Run 按钮
+│   ├── cellFocus.ts          # 单击进入编辑模式
+│   ├── enterSplit.ts         # Enter 键分割单元格
+│   ├── mathCompletion.ts     # LaTeX 自动补全
 │   ├── core/                 # 纯函数：分割、序列化、标签、模板
 │   └── graph/                # 知识图谱（foam 核心 + webview + VS Code 功能）
 ├── renderer/                 # notebook 渲染器（markdown-it + KaTeX）

@@ -1,5 +1,14 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+- **▶ Run button on code cells** — every code cell now shows a `▶ Run` status bar item at its bottom-right corner. Click to execute that cell; the button shows `⏳ Running...` while the cell is in flight and disables itself to prevent duplicate runs.
+- **Single-click cell edit** — clicking on a notebook cell immediately enters edit mode. No more double-click to start typing.
+
+### Fixed
+- **LaTeX backslash duplication in math autocomplete** — typing `\` inside `$...$` and selecting a symbol (e.g. `\alpha`) from the completion list no longer produces `\\alpha`. The completion provider now sets an explicit replace-range that includes the trigger backslash.
+
 ## [0.1.3] - 2026-07-15
 
 ### Fixed

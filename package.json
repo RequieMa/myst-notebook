@@ -130,6 +130,11 @@
         "command": "myst-notebook.convertToCode",
         "title": "MyST: Convert Cell to Code",
         "category": "MyST"
+      },
+      {
+        "command": "myst-notebook.runCell",
+        "title": "MyST: Run Cell",
+        "category": "MyST"
       }
     ],
     "keybindings": [

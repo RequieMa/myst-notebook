@@ -13,6 +13,8 @@ import { registerOnboarding } from './openAsNotebook';
 import { applyFocusedNotebookSettings } from './workspaceChrome';
 import { initLog, log } from './log';
 import { registerGraphFeatures } from './graph';
+import { registerCellStatusBar } from './cellStatusBar';
+import { registerSingleClickEdit } from './cellFocus';
 
 export function activate(context: vscode.ExtensionContext) {
   initLog(context);
@@ -25,6 +27,31 @@ export function activate(context: vscode.ExtensionContext) {
   // Execution
   const controller = new MystController(context.workspaceState);
   context.subscriptions.push({ dispose: () => controller.dispose() });
+
+  // --- Cell UX improvements ---
+
+  // Execute button on code cells (▶ Run)
+  registerCellStatusBar(context, controller);
+
+  // Single-click to enter edit mode
+  registerSingleClickEdit(context);
+
+  // Command: execute a specific cell (fired by the status bar ▶ Run button)
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      'myst-notebook.runCell',
+      (args: { notebookUri: string; cellIndex: number }) => {
+        const notebook = vscode.workspace.notebookDocuments.find(
+          (n) => n.uri.toString() === args.notebookUri,
+        );
+        if (!notebook) return;
+        const cell = notebook.cellAt(args.cellIndex);
+        if (cell) {
+          void controller.execute([cell], notebook);
+        }
+      },
+    ),
+  );
 
   // Kernel lifecycle commands
   context.subscriptions.push(

@@ -48,7 +48,9 @@ To make MyST Notebook the default for `.md` files: **Command Palette → Configu
 | Capability | What it does | How to use |
 |------------|-------------|------------|
 | **Inline rendering** | Prose and math (`$…$`, `$$…$$`) render in place when you move focus | Just type, then move to another cell |
-| **Executable code cells** | `{code-cell}` blocks run through Jupyter, output streams live | `Ctrl+Shift+E` to insert, `Shift+Enter` to run |
+| **Executable code cells** | `{code-cell}` blocks run through Jupyter, output streams live | `Ctrl+Shift+E` to insert, `Shift+Enter` to run, or click `▶ Run` on the cell |
+| **▶ Run button** | Every code cell has a `▶ Run` button at its bottom-right corner | Click `▶ Run` to execute that cell |
+| **Single-click edit** | Click on any cell to start editing immediately | Click once — no double-click needed |
 | **Knowledge graph** | `[[wikilinks]]`, backlinks, and a D3 force graph — MyST-aware, including `{cite}` roles as nodes | `Ctrl+Shift+G` to open the graph |
 | **Zotero citations** | Insert `{cite}` references from your Zotero library, one command to configure | Run **MyST: Configure Zotero Citations**, then `Alt+Shift+Z` |
 | **Math palette** | Collect frequently-used LaTeX symbols, insert with hotkeys | Type `\` inside `$…$` for autocomplete, or `Ctrl+Shift+M` for the picker |
@@ -138,7 +140,8 @@ Pick a reference in the Zotero popup → JSON describing your selection is retur
 | **Enter** | Split cell at cursor (or newline inside a fence / empty cell) |
 | **Alt+Enter** | Insert a literal newline without splitting |
 | **Shift+Enter** | Run cell and advance |
-| **Ctrl+Shift+E** | Insert executable `{code-cell}` below |
+| **Ctrl+Shift+E** | Convert current cell to Code |
+| **Ctrl+Shift+R** | Convert current cell to Markdown |
 | **Ctrl+Shift+D** | Insert display-only code block below |
 | **Ctrl+D** | Delete selected cell (when not in edit mode) |
 
@@ -166,7 +169,12 @@ myst-notebook/
 ├── src/
 │   ├── extension.ts          # activation entry point
 │   ├── mystSerializer.ts     # lossless .md ↔ notebook round-trip
+│   ├── mystController.ts     # cell execution orchestration
 │   ├── kernelSession.ts      # Jupyter kernel lifecycle
+│   ├── cellStatusBar.ts      # ▶ Run button on code cells
+│   ├── cellFocus.ts          # single-click cell edit
+│   ├── enterSplit.ts         # Enter-key cell splitting
+│   ├── mathCompletion.ts     # LaTeX autocomplete
 │   ├── core/                 # pure functions: split, serialize, tags, templates
 │   └── graph/                # knowledge graph (foam core + webview + VS Code features)
 ├── renderer/                 # notebook renderer (markdown-it + KaTeX)
