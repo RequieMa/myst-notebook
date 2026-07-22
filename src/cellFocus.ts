@@ -17,8 +17,9 @@ export function registerSingleClickEdit(context: vscode.ExtensionContext): void 
       // No cell selected → skip.
       if (e.selection.isEmpty) return;
 
-      // Multi-select (Shift+click) → selection spans multiple cells; skip.
-      if (e.selection.start !== e.selection.end) return;
+      // Multi-select (Shift+click) → more than one cell; skip.
+      // `end` is exclusive, so end - start == 1 means exactly one cell.
+      if (e.selection.end - e.selection.start > 1) return;
 
       // A single cell is selected — enter edit mode.
       // `notebook.cell.edit` is a no-op if the cell is already being edited,

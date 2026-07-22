@@ -31,7 +31,8 @@ describe('cellFocus', () => {
       selection: {
         isEmpty,
         start: 0,
-        end: multiSelect ? 2 : 0,
+        // end is exclusive: single cell → end=1, multi-select (3 cells) → end=3
+        end: multiSelect ? 3 : 1,
       },
     } as any);
   }
