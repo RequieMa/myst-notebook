@@ -1,17 +1,15 @@
 import * as vscode from 'vscode';
 
 /**
- * Register single-click cell edit: when the user clicks on a notebook cell it
- * immediately enters edit mode — no double-click needed. Arrow-key navigation
- * between cells also enters edit mode for the newly focused cell.
+ * Register single-click cell edit: when the user clicks on a MARKUP cell it
+ * immediately enters edit mode — no double-click needed.
  *
- * Guard: only fires for myst-notebook documents and only when a single cell is
- * selected (multi-select via Shift+click is skipped).
+ * Code cells are deliberately excluded: VS Code already enters edit mode
+ * naturally on single-click for code cells, and toggling would exit instead.
  *
- * Deferred via setTimeout(0) so VS Code finishes processing the click/selection
- * before we call notebook.cell.edit. Without the deferral the command races
- * with VS Code's own click handler and either toggles edit mode off (for code
- * cells that auto-enter on click) or gets overridden (for markup cells).
+ * Uses the same delayMs + explicit selection + notebook.cell.edit pattern as
+ * enterSplit.ts's selectCellBestEffort, which is the only reliable way to
+ * enter edit mode after VS Code's internal state has settled.
  */
 export function registerSingleClickEdit(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
@@ -23,17 +21,22 @@ export function registerSingleClickEdit(context: vscode.ExtensionContext): void 
       if (e.selection.isEmpty) return;
 
       // Multi-select (Shift+click) → more than one cell; skip.
-      // `end` is exclusive, so end - start == 1 means exactly one cell.
       if (e.selection.end - e.selection.start > 1) return;
 
-      // A single cell is selected — enter edit mode.
-      // Defer to next tick so VS Code's own click handler settles first.
-      // Without this deferral the command runs before VS Code processes the
-      // click, causing a race where edit mode is either toggled off (code
-      // cells) or overridden (markup cells).
-      setTimeout(() => {
-        void vscode.commands.executeCommand('notebook.cell.edit');
-      }, 0);
+      // Only markup cells — code cells already enter edit mode on click.
+      const cell = nb.cellAt(e.selection.start);
+      if (cell.kind !== vscode.NotebookCellKind.Markup) return;
+
+      // Defer: let VS Code's click handler finish, then explicitly set
+      // selection and enter edit mode. Same pattern as enterSplit.ts.
+      const index = e.selection.start;
+      const editor = e.notebookEditor;
+      setTimeout(async () => {
+        // Re-set selection in case VS Code moved it during click processing
+        editor.selection = new vscode.NotebookRange(index, index + 1);
+        await new Promise(r => setTimeout(r, 10));
+        await vscode.commands.executeCommand('notebook.cell.edit');
+      }, 50);
     }),
   );
 }
