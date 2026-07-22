@@ -179,6 +179,13 @@ export const window = {
     this._activeNotebookEditor = v;
   },
   visibleNotebookEditors: [] as any[],
+  createOutputChannel: (_name: string, _opts?: any) => ({
+    info: (_msg: string) => {},
+    appendLine: (_msg: string) => {},
+    dispose: () => {},
+    show: () => {},
+    hide: () => {},
+  }),
 };
 
 export const commands = {

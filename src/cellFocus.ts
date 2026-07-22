@@ -2,13 +2,7 @@ import * as vscode from 'vscode';
 
 /**
  * Register single-click cell edit: when the user clicks on a MARKUP cell it
- * immediately enters edit mode. Code cells are excluded — they auto-enter
- * edit mode naturally on single-click.
- *
- * Uses `notebook.cell.edit` with explicit `{ cell, ui, focus: 'editor' }`
- * args, which the internal EditCellAction.run() supports. Passing the cell
- * object directly bypasses context-key requirements that cause no-arg calls
- * from executeCommand to fail.
+ * immediately enters edit mode — no double-click needed.
  */
 export function registerSingleClickEdit(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
@@ -21,11 +15,7 @@ export function registerSingleClickEdit(context: vscode.ExtensionContext): void 
       const cell = nb.cellAt(e.selection.start);
       if (cell.kind !== vscode.NotebookCellKind.Markup) return;
 
-      void vscode.commands.executeCommand('notebook.cell.edit', {
-        cell,
-        ui: true,
-        focus: 'editor',
-      });
+      void vscode.commands.executeCommand('notebook.cell.edit');
     }),
   );
 }
