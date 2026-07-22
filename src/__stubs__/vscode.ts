@@ -171,9 +171,14 @@ export const notebooks = {
 
 export const window = {
   onDidChangeNotebookEditorSelection: createEvent<{ notebookEditor: any; selection: any }>(),
+  _activeNotebookEditor: undefined as any,
   get activeNotebookEditor(): any {
-    return undefined;
+    return this._activeNotebookEditor;
   },
+  set activeNotebookEditor(v: any) {
+    this._activeNotebookEditor = v;
+  },
+  visibleNotebookEditors: [] as any[],
 };
 
 export const commands = {
