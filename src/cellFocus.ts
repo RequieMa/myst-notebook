@@ -7,6 +7,11 @@ import * as vscode from 'vscode';
  *
  * Guard: only fires for myst-notebook documents and only when a single cell is
  * selected (multi-select via Shift+click is skipped).
+ *
+ * Deferred via setTimeout(0) so VS Code finishes processing the click/selection
+ * before we call notebook.cell.edit. Without the deferral the command races
+ * with VS Code's own click handler and either toggles edit mode off (for code
+ * cells that auto-enter on click) or gets overridden (for markup cells).
  */
 export function registerSingleClickEdit(context: vscode.ExtensionContext): void {
   context.subscriptions.push(
@@ -22,9 +27,13 @@ export function registerSingleClickEdit(context: vscode.ExtensionContext): void 
       if (e.selection.end - e.selection.start > 1) return;
 
       // A single cell is selected — enter edit mode.
-      // `notebook.cell.edit` is a no-op if the cell is already being edited,
-      // so we can call it unconditionally.
-      void vscode.commands.executeCommand('notebook.cell.edit');
+      // Defer to next tick so VS Code's own click handler settles first.
+      // Without this deferral the command runs before VS Code processes the
+      // click, causing a race where edit mode is either toggled off (code
+      // cells) or overridden (markup cells).
+      setTimeout(() => {
+        void vscode.commands.executeCommand('notebook.cell.edit');
+      }, 0);
     }),
   );
 }

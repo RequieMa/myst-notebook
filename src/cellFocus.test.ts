@@ -1,8 +1,7 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as vscode from './__stubs__/vscode';
 import { registerSingleClickEdit } from './cellFocus';
 
-// Save the original executeCommand so we can restore it before each test.
 const _origExecuteCommand = vscode.commands.executeCommand;
 
 describe('cellFocus', () => {
@@ -10,15 +9,16 @@ describe('cellFocus', () => {
 
   beforeEach(() => {
     editCalls = [];
-
-    // Clear listeners accumulated from previous tests
+    vi.useFakeTimers();
     vscode.window.onDidChangeNotebookEditorSelection.reset();
-
-    // Restore and then spy on executeCommand (always chain from the original)
     vscode.commands.executeCommand = (command: string, ...args: any[]) => {
       editCalls.push(command);
       return _origExecuteCommand(command, ...args);
     };
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   function fireSelection(notebookType: string, opts: { isEmpty?: boolean; multiSelect?: boolean } = {}): void {
@@ -31,33 +31,42 @@ describe('cellFocus', () => {
       selection: {
         isEmpty,
         start: 0,
-        // end is exclusive: single cell → end=1, multi-select (3 cells) → end=3
         end: multiSelect ? 3 : 1,
       },
     } as any);
   }
 
-  it('triggers notebook.cell.edit on single-cell selection in myst-notebook', () => {
+  it('triggers notebook.cell.edit on single-cell selection in myst-notebook (deferred)', async () => {
     registerSingleClickEdit({ subscriptions: [] } as any);
     fireSelection('myst-notebook');
+
+    // Command should NOT fire synchronously (it's deferred via setTimeout)
+    expect(editCalls).not.toContain('notebook.cell.edit');
+
+    // Advance timers → setTimeout(0) fires
+    await vi.runAllTimersAsync();
+
     expect(editCalls).toContain('notebook.cell.edit');
   });
 
-  it('skips when notebook type is not myst-notebook', () => {
+  it('skips when notebook type is not myst-notebook', async () => {
     registerSingleClickEdit({ subscriptions: [] } as any);
     fireSelection('jupyter-notebook');
+    await vi.runAllTimersAsync();
     expect(editCalls).not.toContain('notebook.cell.edit');
   });
 
-  it('skips when selection is empty', () => {
+  it('skips when selection is empty', async () => {
     registerSingleClickEdit({ subscriptions: [] } as any);
     fireSelection('myst-notebook', { isEmpty: true });
+    await vi.runAllTimersAsync();
     expect(editCalls).not.toContain('notebook.cell.edit');
   });
 
-  it('skips multi-select (Shift+click)', () => {
+  it('skips multi-select (Shift+click)', async () => {
     registerSingleClickEdit({ subscriptions: [] } as any);
     fireSelection('myst-notebook', { multiSelect: true });
+    await vi.runAllTimersAsync();
     expect(editCalls).not.toContain('notebook.cell.edit');
   });
 });
