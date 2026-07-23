@@ -9,7 +9,7 @@
 [![Afdian](https://img.shields.io/badge/Support-爱发电-946CE6?style=flat)](https://afdian.com/a/requiema)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/RequieMa/myst-notebook/blob/Master/LICENSE)
 [![VS Code](https://img.shields.io/badge/VS_Code-1.85+-blue.svg)](https://code.visualstudio.com/)
-<!-- Coming: VS Code Marketplace version badge -->
+[![Marketplace](https://img.shields.io/visual-studio-marketplace/v/RequieMa.myst-notebook?style=flat&label=Marketplace&color=blue)](https://marketplace.visualstudio.com/items?itemName=RequieMa.myst-notebook)
 
 <br>
 
@@ -33,7 +33,7 @@
 
 从 VS Code Marketplace 安装，打开 MyST `.md` 文件，即开即写。
 
-1. 从 [VS Code Marketplace](#) 安装 **MyST Notebook** <!-- 发布后更新链接 --> **尚未发布！**
+1. 从 [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=RequieMa.myst-notebook) 安装 **MyST Notebook**
 2. 在 MyST / Jupyter Book 项目中打开 `.md` 文件（含有 `myst.yml` 的项目）
 3. 点击编辑器工具栏中的 **Open as MyST Notebook**，或右键标签页 → **Reopen Editor With… → MyST Notebook**
 

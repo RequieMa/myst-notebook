@@ -9,7 +9,7 @@
 [![Afdian](https://img.shields.io/badge/Support-爱发电-946CE6?style=flat)](https://afdian.com/a/requiema)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](https://github.com/RequieMa/myst-notebook/blob/Master/LICENSE)
 [![VS Code](https://img.shields.io/badge/VS_Code-1.85+-blue.svg)](https://code.visualstudio.com/)
-<!-- Coming: VS Code Marketplace version badge -->
+[![Marketplace](https://img.shields.io/visual-studio-marketplace/v/RequieMa.myst-notebook?style=flat&label=Marketplace&color=blue)](https://marketplace.visualstudio.com/items?itemName=RequieMa.myst-notebook)
 
 <br>
 
@@ -33,7 +33,7 @@
 
 Install from the VS Code Marketplace, open a MyST `.md`, and start writing.
 
-1. Install **MyST Notebook** from the [VS Code Marketplace](#) <!-- link after publish --> **NOT READY YET!**
+1. Install **MyST Notebook** from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=RequieMa.myst-notebook)
 2. Open a `.md` file in a MyST / Jupyter Book project (one with a `myst.yml`)
 3. Click **Open as MyST Notebook** in the editor toolbar, or right-click the tab → **Reopen Editor With… → MyST Notebook**
 
