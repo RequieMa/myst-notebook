@@ -33,7 +33,7 @@ export function activate(context: vscode.ExtensionContext) {
   // Execute button on code cells (▶ Run)
   registerCellStatusBar(context, controller);
 
-  // Single-click to enter edit mode
+  // Single-click to enter edit mode (selection-change path)
   registerSingleClickEdit(context);
 
   // Command: execute a specific cell (fired by the status bar ▶ Run button)

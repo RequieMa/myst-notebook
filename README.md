@@ -50,7 +50,7 @@ To make MyST Notebook the default for `.md` files: **Command Palette → Configu
 | **Inline rendering** | Prose and math (`$…$`, `$$…$$`) render in place when you move focus | Just type, then move to another cell |
 | **Executable code cells** | `{code-cell}` blocks run through Jupyter, output streams live | `Ctrl+Shift+E` to insert, `Shift+Enter` to run, or click `▶ Run` on the cell |
 | **▶ Run button** | Every code cell has a `▶ Run` button at its bottom-right corner | Click `▶ Run` to execute that cell |
-| **Single-click edit** | Click on any cell to start editing immediately | Click once — no double-click needed |
+| **Quick-edit** | Switching to a markup cell auto-enters edit mode | Click a different cell, or press Enter on the current one |
 | **Knowledge graph** | `[[wikilinks]]`, backlinks, and a D3 force graph — MyST-aware, including `{cite}` roles as nodes | `Ctrl+Shift+G` to open the graph |
 | **Zotero citations** | Insert `{cite}` references from your Zotero library, one command to configure | Run **MyST: Configure Zotero Citations**, then `Alt+Shift+Z` |
 | **Math palette** | Collect frequently-used LaTeX symbols, insert with hotkeys | Type `\` inside `$…$` for autocomplete, or `Ctrl+Shift+M` for the picker |
@@ -190,6 +190,7 @@ myst-notebook/
 
 ## Limitations
 
+- **Clicking an already-selected markup cell** does not auto-enter edit mode (VS Code API limitation — no public method to detect clicks on rendered webview content). Switch to a different cell, press Enter, or use the cell toolbar Edit button.
 - **MyST colon-fence directives** (`:::{note}`, `:::{warning}`, `:::{figure}`, etc.) are NOT rendered inline in the notebook editor. VS Code's notebook renderer only supports inline-level markdown, not block-level custom syntax. The directives appear as plain source text while editing — they are correctly processed by `jupyter-book build` at build time. Write the directive syntax as you normally would; the compiler handles the final rendering.
 - **Relative local image paths** in `figure`/`image` directives may not resolve in the renderer sandbox. Use absolute `https://` URLs or data URIs.
 - **CRLF line endings** are out of scope for v1 (LF assumed).

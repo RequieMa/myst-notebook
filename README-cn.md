@@ -50,7 +50,7 @@
 | **内联渲染** | 正文和数学公式（`$…$`、`$$…$$`）在焦点离开时原地渲染 | 只需输入，然后移动到另一个单元格 |
 | **可执行代码块** | `{code-cell}` 代码块通过 Jupyter 运行，输出实时流式显示 | `Ctrl+Shift+E` 插入，`Shift+Enter` 运行，或点击单元格上的 `▶ Run` |
 | **▶ Run 按钮** | 每个代码单元格右下角显示 `▶ Run` 按钮 | 点击 `▶ Run` 即可执行该单元格 |
-| **单击编辑** | 单击任意单元格即可开始编辑 | 单击一次——无需双击 |
+| **快速编辑** | 切换到其他 markup 单元格时自动进入编辑模式 | 点击另一个 cell，或在当前 cell 上按 Enter |
 | **知识图谱** | `[[wikilinks]]`、反向链接和 D3 力导向图——支持 MyST，`{cite}` 角色可作为图谱节点 | `Ctrl+Shift+G` 打开图谱 |
 | **Zotero 引用** | 从你的 Zotero 库中插入 `{cite}` 引用，一条命令完成配置 | 运行 **MyST: Configure Zotero Citations**，然后 `Alt+Shift+Z` |
 | **数学符号面板** | 收藏常用 LaTeX 符号，快捷键插入 | 在 `$…$` 中输入 `\` 触发自动补全，或 `Ctrl+Shift+M` 打开选择器 |
@@ -190,6 +190,7 @@ myst-notebook/
 
 ## 局限性
 
+- **点击已选中的 markup 单元格**不会自动进入编辑模式（VS Code API 限制——没有公开方法检测对渲染后 webview 内容的点击）。切换到其他单元格、按 Enter、或使用单元格工具栏的 Edit 按钮。
 - **MyST 冒号围栏指令**（`:::{note}`、`:::{warning}`、`:::{figure}` 等）**不支持**在 notebook 编辑器中内联渲染。VS Code 的 notebook 渲染器仅支持行内级 markdown，不支持块级自定义语法。编辑时这些指令显示为纯文本——它们在 `jupyter-book build` 构建时会被正确处理。按正常写法输入指令语法即可，编译器会负责最终渲染。
 - `figure`/`image` 指令中的**相对本地图片路径**可能在渲染器沙箱中无法解析。请使用绝对 `https://` URL 或 data URI。
 - **CRLF 换行符**不在 v1 范围内（假定为 LF）。

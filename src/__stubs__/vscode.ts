@@ -181,11 +181,14 @@ export const window = {
   visibleNotebookEditors: [] as any[],
   createOutputChannel: (_name: string, _opts?: any) => ({
     info: (_msg: string) => {},
+    error: (_msg: string) => {},
+    warn: (_msg: string) => {},
     appendLine: (_msg: string) => {},
     dispose: () => {},
     show: () => {},
     hide: () => {},
   }),
+  showNotebookDocument: (_doc: any, _opts?: any): Promise<any> => Promise.resolve(),
 };
 
 export const commands = {

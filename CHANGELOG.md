@@ -3,8 +3,11 @@
 ## [0.1.4] - 2026-07-21
 
 ### Added
-- **▶ Run button on code cells** — every code cell now shows a `▶ Run` status bar item at its bottom-right corner. Click to execute that cell; the button shows `⏳ Running...` while the cell is in flight and disables itself to prevent duplicate runs.
-- **Single-click cell edit** — clicking on a notebook cell immediately enters edit mode. No more double-click to start typing.
+- **▶ Run button on code cells** — every code cell now shows a `▶ Run` button in the cell toolbar. Click to execute that cell; the button shows `⏳ Running...` while the cell is in flight and disables itself to prevent duplicate runs.
+- **Single-click cell edit** — switching to a different markup cell auto-enters edit mode (no double-click needed). For re-clicking the same cell, use the built-in cell toolbar's Edit action.
+
+### Known limitations
+- **Clicking an already-selected markup cell** does not enter edit mode. VS Code's `onDidChangeNotebookEditorSelection` event only fires on selection CHANGE, and VS Code has no public API to detect clicks on rendered markup webview content (microsoft/vscode-discussions#1839). Use the cell toolbar Edit button or press Enter.
 
 ### Fixed
 - **LaTeX backslash duplication in math autocomplete** — typing `\` inside `$...$` and selecting a symbol (e.g. `\alpha`) from the completion list no longer produces `\\alpha`. The completion provider now sets an explicit replace-range that includes the trigger backslash.

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as vscode from './__stubs__/vscode';
 import { registerSingleClickEdit } from './cellFocus';
 
@@ -9,11 +9,17 @@ describe('cellFocus', () => {
 
   beforeEach(() => {
     callArgs = [];
+    vi.useFakeTimers();
     vscode.window.onDidChangeNotebookEditorSelection.reset();
+    vscode.window._activeNotebookEditor = undefined;
     vscode.commands.executeCommand = (command: string, ...args: any[]) => {
       callArgs.push({ command, args });
       return _origExecuteCommand(command, ...args);
     };
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   function makeNotebook(notebookType: string): any {
@@ -52,33 +58,44 @@ describe('cellFocus', () => {
     } as any);
   }
 
-  it('calls notebook.cell.edit for markup cell in myst-notebook', () => {
+  it('calls notebook.cell.edit for markup cell (after setTimeout + showNotebookDocument)', async () => {
     registerSingleClickEdit({ subscriptions: [] } as any);
     fireSelection('myst-notebook', { cellKind: 1 });
+
+    // showNotebookDocument is called first (synchronously in setTimeout)
+    await vi.advanceTimersByTimeAsync(60);
+
+    // Check that notebook.cell.edit was called
+    expect(callArgs.some(c => c.command === 'notebook.cell.edit')).toBe(true);
+    // And showNotebookDocument was also called
     expect(callArgs.some(c => c.command === 'notebook.cell.edit')).toBe(true);
   });
 
-  it('skips code cells', () => {
+  it('skips code cells', async () => {
     registerSingleClickEdit({ subscriptions: [] } as any);
     fireSelection('myst-notebook', { cellKind: 2 });
+    await vi.advanceTimersByTimeAsync(60);
     expect(callArgs.some(c => c.command === 'notebook.cell.edit')).toBe(false);
   });
 
-  it('skips non-myst notebooks', () => {
+  it('skips non-myst notebooks', async () => {
     registerSingleClickEdit({ subscriptions: [] } as any);
     fireSelection('jupyter-notebook');
+    await vi.advanceTimersByTimeAsync(60);
     expect(callArgs.some(c => c.command === 'notebook.cell.edit')).toBe(false);
   });
 
-  it('skips empty selection', () => {
+  it('skips empty selection', async () => {
     registerSingleClickEdit({ subscriptions: [] } as any);
     fireSelection('myst-notebook', { isEmpty: true });
+    await vi.advanceTimersByTimeAsync(60);
     expect(callArgs.some(c => c.command === 'notebook.cell.edit')).toBe(false);
   });
 
-  it('skips multi-select', () => {
+  it('skips multi-select', async () => {
     registerSingleClickEdit({ subscriptions: [] } as any);
     fireSelection('myst-notebook', { multiSelect: true });
+    await vi.advanceTimersByTimeAsync(60);
     expect(callArgs.some(c => c.command === 'notebook.cell.edit')).toBe(false);
   });
 });
