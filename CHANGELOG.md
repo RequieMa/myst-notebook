@@ -12,6 +12,10 @@
 - `MathSymbolStore` now reads/writes `.vscode/myst-symbols.json` instead of VS Code's `workspaceState`. A `FileSystemWatcher` reloads the config when edited externally (e.g., `git pull`).
 - `Ctrl+Shift+M` QuickPick now uses O(1) `MATH_SYMBOLS_BY_LATEX` lookup for snippet-aware insertion.
 
+### Fixed
+- **Usage count inflation** — cell-exit scanning (linter) was calling `store.add()` on every math symbol in the document, inflating usage counts on every cursor move and VS Code restart. Now uses `markSeen()` — counts only increment on explicit user insertions (completion accept, QuickPick, palette click).
+- **`\` completion inside multi-line display math** — `isInsideMathContext` was line-based and couldn't see `$$` delimiters on other lines, so `\` completions silently failed in `$$...$$` blocks that spanned multiple lines. Now scans full document text up to the cursor.
+
 ## [0.1.4] - 2026-07-21
 
 ### Added
