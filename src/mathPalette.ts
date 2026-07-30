@@ -92,7 +92,7 @@ export class MathSymbolStore {
     }
   }
 
-  /** Record a symbol usage. Sync — updates in-memory cache immediately. */
+  /** Record a symbol usage. Sync — increments count, updates timestamp. */
   add(latex: string): void {
     const existing = this.symbols.get(latex);
     if (existing) {
@@ -105,6 +105,22 @@ export class MathSymbolStore {
       });
     }
     this.debouncedSave();
+  }
+
+  /**
+   * Register a symbol as "seen in the document" without incrementing its usage
+   * count. If the symbol is already tracked (e.g. from an explicit insertion),
+   * leave the existing count alone. This is used by the linter/cell scanner to
+   * populate the palette sidebar without inflating usage stats on every cell exit.
+   */
+  markSeen(latex: string): void {
+    if (!this.symbols.has(latex)) {
+      this.symbols.set(latex, {
+        count: 0,
+        lastUsed: new Date().toISOString(),
+      });
+      this.debouncedSave();
+    }
   }
 
   /** Remove a symbol. For palette sidebar use. */

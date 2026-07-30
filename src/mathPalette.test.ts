@@ -76,6 +76,21 @@ describe('MathSymbolStore', () => {
     it('returns empty array when no symbols added', () => {
       expect(store.getRecent(10)).toEqual([]);
     });
+
+    it('markSeen does not increment count for existing symbols', () => {
+      store.add('\\alpha');
+      expect(store.getStats('\\alpha')?.count).toBe(1);
+      store.markSeen('\\alpha');
+      expect(store.getStats('\\alpha')?.count).toBe(1); // unchanged
+    });
+
+    it('markSeen adds unseen symbols with count 0', () => {
+      store.markSeen('\\alpha');
+      expect(store.getStats('\\alpha')?.count).toBe(0);
+      // Subsequent markSeen keeps count at 0
+      store.markSeen('\\alpha');
+      expect(store.getStats('\\alpha')?.count).toBe(0);
+    });
   });
 
   describe('load', () => {

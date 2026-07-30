@@ -5,7 +5,10 @@ import { isInsideMathContext } from './mathContextDetector';
 
 
 export class MathCompletionProvider implements vscode.CompletionItemProvider {
-  constructor(private readonly store: MathSymbolStore) {}
+  constructor(
+    private readonly store: MathSymbolStore,
+    private readonly acceptCommand?: { command: string; title: string },
+  ) {}
 
   provideCompletionItems(
     document: vscode.TextDocument,
@@ -46,6 +49,15 @@ export class MathCompletionProvider implements vscode.CompletionItemProvider {
       } else {
         // Tier 1: unused symbols, by built-in index
         item.sortText = `1_${String(index).padStart(4, '0')}`;
+      }
+
+      // Fire on-accept command so usage is recorded
+      if (this.acceptCommand) {
+        item.command = {
+          command: this.acceptCommand.command,
+          title: this.acceptCommand.title,
+          arguments: [sym.latex],
+        };
       }
 
       return item;

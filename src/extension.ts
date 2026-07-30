@@ -128,6 +128,7 @@ export function activate(context: vscode.ExtensionContext) {
       (latex: string) => {
         const sym = MATH_SYMBOLS_BY_LATEX.get(latex);
         insertLatexAtCursor(latex, sym?.snippet);
+        store.add(latex);
       },
     ),
   );
@@ -139,11 +140,22 @@ export function activate(context: vscode.ExtensionContext) {
     ),
   );
 
+  // Command: record a math symbol as explicitly used (fired by completion accept)
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      'myst-notebook.recordMathSymbol',
+      (latex: string) => store.add(latex),
+    ),
+  );
+
   // Inline \ completion inside $...$ and $$...$$
   context.subscriptions.push(
     vscode.languages.registerCompletionItemProvider(
       { language: 'markdown' },
-      new MathCompletionProvider(store),
+      new MathCompletionProvider(store, {
+        command: 'myst-notebook.recordMathSymbol',
+        title: 'Record usage',
+      }),
       '\\',
     ),
   );
@@ -199,9 +211,12 @@ function registerMathLinterAndCollect(
 
     // Collect distinct, reusable math elements into the palette. The linter
     // runs first so commands like \mathbf R become \mathbf{R} before storage.
+    // Use markSeen (not add) — we are scanning existing document content, not
+    // recording an explicit user insertion. Counts only increment on explicit
+    // insertions (QuickPick, completion accept, palette click).
     let paletteDirty = false;
     for (const element of collectMathPaletteItems(original)) {
-      store.add(element);
+      store.markSeen(element);
       paletteDirty = true;
     }
     if (paletteDirty) provider.refresh();
