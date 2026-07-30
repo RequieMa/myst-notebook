@@ -53,7 +53,7 @@ To make MyST Notebook the default for `.md` files: **Command Palette → Configu
 | **Quick-edit** | Switching to a markup cell auto-enters edit mode | Click a different cell, or press Enter on the current one |
 | **Knowledge graph** | `[[wikilinks]]`, backlinks, and a D3 force graph — MyST-aware, including `{cite}` roles as nodes | `Ctrl+Shift+G` to open the graph |
 | **Zotero citations** | Insert `{cite}` references from your Zotero library, one command to configure | Run **MyST: Configure Zotero Citations**, then `Alt+Shift+Z` |
-| **Math palette** | Collect frequently-used LaTeX symbols, insert with hotkeys | Type `\` inside `$…$` for autocomplete, or `Ctrl+Shift+M` for the picker |
+| **Math palette** | Collect frequently-used LaTeX symbols (persisted to `.vscode/myst-symbols.json`), insert with hotkeys | Type `\` inside `$…$` or `$$…$$` for autocomplete, or `Ctrl+Shift+M` for the picker |
 | **Auto-split** | Press Enter at end of a paragraph → new cell below, cursor ready | Just press Enter after finishing a paragraph |
 
 ---
@@ -149,7 +149,7 @@ Pick a reference in the Zotero popup → JSON describing your selection is retur
 
 | Key | Action |
 |-----|--------|
-| **`\`** inside `$…$` | Autocomplete LaTeX symbols |
+| **`\`** inside `$…$` or `$$…$$` | Autocomplete LaTeX symbols (snippets for brace commands) |
 | **Ctrl+Shift+M** | Open math symbol picker (recently used first) |
 | **Alt+Shift+Z** | Open Zotero citation picker |
 

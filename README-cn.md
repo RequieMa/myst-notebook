@@ -53,7 +53,7 @@
 | **快速编辑** | 切换到其他 markup 单元格时自动进入编辑模式 | 点击另一个 cell，或在当前 cell 上按 Enter |
 | **知识图谱** | `[[wikilinks]]`、反向链接和 D3 力导向图——支持 MyST，`{cite}` 角色可作为图谱节点 | `Ctrl+Shift+G` 打开图谱 |
 | **Zotero 引用** | 从你的 Zotero 库中插入 `{cite}` 引用，一条命令完成配置 | 运行 **MyST: Configure Zotero Citations**，然后 `Alt+Shift+Z` |
-| **数学符号面板** | 收藏常用 LaTeX 符号，快捷键插入 | 在 `$…$` 中输入 `\` 触发自动补全，或 `Ctrl+Shift+M` 打开选择器 |
+| **数学符号面板** | 收藏常用 LaTeX 符号（持久化到 `.vscode/myst-symbols.json`），快捷键插入 | 在 `$…$` 或 `$$…$$` 中输入 `\` 触发自动补全，或 `Ctrl+Shift+M` 打开选择器 |
 | **自动分割** | 在段落末尾按 Enter → 下方创建新单元格，光标就位 | 写完一个段落直接按 Enter |
 
 ---
@@ -149,7 +149,7 @@ curl -s "http://127.0.0.1:23119/better-bibtex/cayw?format=json"
 
 | 按键 | 操作 |
 |------|------|
-| **在 `$…$` 中输入 `\`** | LaTeX 符号自动补全 |
+| **在 `$…$` 或 `$$…$$` 中输入 `\`** | LaTeX 符号自动补全（带括号的命令支持 snippet 光标定位） |
 | **Ctrl+Shift+M** | 打开数学符号选择面板（最近使用优先） |
 | **Alt+Shift+Z** | 打开 Zotero 引用选择器 |
 
