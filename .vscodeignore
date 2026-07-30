@@ -21,3 +21,8 @@ package-lock.json
 .gitignore
 PUBLISH.md
 _scratch/**
+.superpowers/**
+TODO.md
+memory/**
+CLAUDE.md
+FUNDING.yml

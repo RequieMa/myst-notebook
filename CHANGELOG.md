@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.5] - 2026-07-30
+
+### Added
+- **Project-level symbol persistence** — used math symbols are now saved to `.vscode/myst-symbols.json` with usage counts and timestamps. Data survives VS Code restarts and can be committed to git for team sharing. Legacy `workspaceState` data is auto-migrated on first activation.
+- **Snippet cursor placement for brace commands** — selecting `\mathbf{}`, `\frac{}{}`, `\sqrt{}`, and other brace-wrapping commands now places the cursor *inside* the braces using VS Code snippet tab stops (`$1`, `$2`). Press Tab to jump between arguments.
+- **Expanded math symbol list** — from 113 to **481** KaTeX-supported commands across 23 categories, including font commands (`\mathbf`, `\mathbb`, `\mathcal`, `\mathfrak`), trig/hyperbolic functions (`\sin`, `\cos`, `\arctan`), extended arrows (`\rightarrow`, `\longrightarrow`, `\mapsto`), delimiters (`\langle`, `\lceil`, `\lfloor`), decorations (`\widehat`, `\widetilde`, `\overline`), and many more.
+- **Usage-based completion sorting** — frequently-used symbols rise to the top of the completion list, ordered by usage count then recency.
+
+### Changed
+- `MathSymbolStore` now reads/writes `.vscode/myst-symbols.json` instead of VS Code's `workspaceState`. A `FileSystemWatcher` reloads the config when edited externally (e.g., `git pull`).
+- `Ctrl+Shift+M` QuickPick now uses O(1) `MATH_SYMBOLS_BY_LATEX` lookup for snippet-aware insertion.
+
 ## [0.1.4] - 2026-07-21
 
 ### Added
