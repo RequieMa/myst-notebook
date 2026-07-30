@@ -327,6 +327,7 @@ export const MATH_SYMBOLS: MathSymbol[] = [
   { latex: '\\bot', description: 'bottom', unicode: '⊥' },
   { latex: '\\therefore', description: 'therefore', unicode: '∴' },
   { latex: '\\because', description: 'because', unicode: '∵' },
+  { latex: '\\emptyset', description: 'empty set', unicode: '∅' },
   { latex: '\\varnothing', description: 'empty set (var)', unicode: '∅' },
   { latex: '\\complement', description: 'complement', unicode: '∁' },
 
@@ -448,6 +449,10 @@ export const MATH_SYMBOLS: MathSymbol[] = [
   { latex: '\\sphericalangle', description: 'spherical angle', unicode: '∢' },
   { latex: '\\surd', description: 'surd', unicode: '√' },
   { latex: '\\dots', description: 'dots', unicode: '…' },
+  { latex: '\\ldots', description: 'lower dots', unicode: '…' },
+  { latex: '\\cdots', description: 'center dots', unicode: '⋯' },
+  { latex: '\\vdots', description: 'vertical dots', unicode: '⋮' },
+  { latex: '\\ddots', description: 'diagonal dots', unicode: '⋱' },
   { latex: '\\iddots', description: 'inverse dots', unicode: '⋰' },
   { latex: '\\square', description: 'square', unicode: '□' },
   { latex: '\\Box', description: 'Box', unicode: '□' },
