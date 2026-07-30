@@ -14,11 +14,11 @@ export class MathCompletionProvider implements vscode.CompletionItemProvider {
     document: vscode.TextDocument,
     position: vscode.Position
   ): vscode.CompletionItem[] | undefined {
-    const line = document.lineAt(position).text;
-    if (!isInsideMathContext(line, position.character)) {
+    if (!isInsideMathContext(document, position)) {
       return undefined;
     }
 
+    const line = document.lineAt(position).text;
     const linePrefix = line.slice(0, position.character);
     const lastBackslash = linePrefix.lastIndexOf('\\');
     const replaceRange =
