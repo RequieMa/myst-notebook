@@ -139,10 +139,14 @@ export function activate(context: vscode.ExtensionContext) {
   }
 }
 
-function insertLatexAtCursor(latex: string): void {
+function insertLatexAtCursor(latex: string, snippet?: string): void {
   const editor = vscode.window.activeTextEditor;
   if (!editor) return;
-  void editor.edit(eb => eb.insert(editor.selection.active, latex));
+  if (snippet) {
+    void editor.insertSnippet(new vscode.SnippetString(snippet), editor.selection.active);
+  } else {
+    void editor.edit(eb => eb.insert(editor.selection.active, latex));
+  }
 }
 
 function registerMathLinterAndCollect(
