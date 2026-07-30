@@ -72,9 +72,23 @@ export class Range {
   end!: Position;
 }
 
+export class SnippetString {
+  constructor(public value: string) {}
+}
+
+export class EventEmitter<T> {
+  private listeners: Array<(e: T) => any> = [];
+  readonly event = (listener: (e: T) => any, _thisArgs?: any, _disposables?: any[]) => {
+    this.listeners.push(listener);
+    return { dispose: () => { const i = this.listeners.indexOf(listener); if (i >= 0) this.listeners.splice(i, 1); } };
+  };
+  fire(data: T): void { for (const l of this.listeners) l(data); }
+  dispose(): void { this.listeners.length = 0; }
+}
+
 export class CompletionItem {
   range?: Range;
-  insertText?: string;
+  insertText?: string | SnippetString;
   sortText?: string;
   filterText?: string;
   detail?: string;
