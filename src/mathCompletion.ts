@@ -16,10 +16,6 @@ export class MathCompletionProvider implements vscode.CompletionItemProvider {
       return undefined;
     }
 
-    // Find the backslash that triggered this completion session so we can set
-    // the replace-range correctly. Without an explicit range VS Code replaces the
-    // "word" at the cursor, but `\` is not a word character in markdown, so it
-    // stays behind and the inserted \alpha produces \\alpha.
     const linePrefix = line.slice(0, position.character);
     const lastBackslash = linePrefix.lastIndexOf('\\');
     const replaceRange =
@@ -27,19 +23,31 @@ export class MathCompletionProvider implements vscode.CompletionItemProvider {
         ? new vscode.Range(position.line, lastBackslash, position.line, position.character)
         : undefined;
 
-    const recent = new Set(this.store.getRecent(20));
-
     const items = MATH_SYMBOLS.map((sym, index) => {
       const item = new vscode.CompletionItem(sym.latex, vscode.CompletionItemKind.Value);
       item.detail = sym.unicode ?? '';
       item.documentation = sym.description;
-      // Boost recently used symbols to the top
-      item.sortText = recent.has(sym.latex)
-        ? `0_${String(index).padStart(4, '0')}`
-        : `1_${String(index).padStart(4, '0')}`;
+
+      // Snippet insertion for brace-wrapping commands
+      if (sym.snippet) {
+        item.insertText = new vscode.SnippetString(sym.snippet);
+      }
+
       if (replaceRange) {
         item.range = replaceRange;
       }
+
+      // Sort: config stats → built-in index
+      const stats = this.store.getStats(sym.latex);
+      if (stats && stats.count > 0) {
+        // Tier 0: used symbols, sorted by count desc (padded for string sort)
+        const countKey = String(9999 - Math.min(stats.count, 9999)).padStart(4, '0');
+        item.sortText = `0_${countKey}_${String(index).padStart(4, '0')}`;
+      } else {
+        // Tier 1: unused symbols, by built-in index
+        item.sortText = `1_${String(index).padStart(4, '0')}`;
+      }
+
       return item;
     });
 

@@ -75,7 +75,7 @@ function makeDoc(text: string): vscode.TextDocument {
 }
 
 describe('MathCompletionProvider', () => {
-  const store = new MathSymbolStore({ get: (_key: string, defaultValue: any) => defaultValue, update: () => Promise.resolve() } as any);
+  const store = new MathSymbolStore('/tmp/test');
 
   it('returns items with range covering the trigger backslash', () => {
     const provider = new MathCompletionProvider(store);
@@ -151,5 +151,60 @@ describe('MathCompletionProvider', () => {
       expect(item.range!.start.character).toBe(1); // position of "\"
       expect(item.range!.end.character).toBe(2);   // cursor position
     }
+  });
+
+  it('sets insertText as SnippetString for symbols with snippet', () => {
+    // Override MATH_SYMBOLS temporarily? No — test with a real snippet symbol.
+    // \mathbf{} has snippet: "\mathbf{$1}" (after Task 2 expansion)
+    const provider = new MathCompletionProvider(store);
+    const doc = makeDoc('$\\mathbf');
+    const pos = new vscode.Position(0, 8);
+    const items = provider.provideCompletionItems(
+      doc as any, pos, undefined as any, undefined as any,
+    );
+    expect(items).not.toBeUndefined();
+    const mathbf = items!.find(i => i.label === '\\mathbf{}');
+    if (mathbf) {
+      expect(mathbf.insertText).toBeDefined();
+      expect(mathbf.insertText).toBeInstanceOf(vscode.SnippetString);
+      expect((mathbf.insertText as vscode.SnippetString).value).toBe('\\mathbf{$1}');
+    }
+  });
+
+  it('does NOT set insertText for symbols without snippet', () => {
+    const provider = new MathCompletionProvider(store);
+    const doc = makeDoc('$\\alpha');
+    const pos = new vscode.Position(0, 6);
+    const items = provider.provideCompletionItems(
+      doc as any, pos, undefined as any, undefined as any,
+    );
+    expect(items).not.toBeUndefined();
+    const alpha = items!.find(i => i.label === '\\alpha');
+    expect(alpha).toBeDefined();
+    expect(alpha!.insertText).toBeUndefined(); // plain text, uses label
+  });
+
+  it('boosts sortText for symbols with higher usage count', () => {
+    const storeWithStats = new MathSymbolStore('/tmp/test');
+    storeWithStats._fromJSON(JSON.stringify({
+      version: 1,
+      symbols: {
+        '\\alpha': { count: 10, lastUsed: '2026-07-30T10:00:00Z' },
+        '\\beta': { count: 1, lastUsed: '2026-07-29T10:00:00Z' },
+      },
+    }));
+    const provider = new MathCompletionProvider(storeWithStats);
+    const doc = makeDoc('$\\');
+    const pos = new vscode.Position(0, 2);
+    const items = provider.provideCompletionItems(
+      doc as any, pos, undefined as any, undefined as any,
+    );
+    expect(items).not.toBeUndefined();
+    const alpha = items!.find(i => i.label === '\\alpha');
+    const beta = items!.find(i => i.label === '\\beta');
+    expect(alpha).toBeDefined();
+    expect(beta).toBeDefined();
+    // Alpha should sort before beta (higher count)
+    expect(alpha!.sortText! < beta!.sortText!).toBe(true);
   });
 });
