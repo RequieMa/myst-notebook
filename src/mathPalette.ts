@@ -3,6 +3,11 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { log } from './log';
 
+/** Type guard: checks if an error is a Node.js SystemError with a `.code` property. */
+function isNodeError(err: unknown): err is NodeJS.ErrnoException {
+  return err instanceof Error && 'code' in err;
+}
+
 interface SymbolStats {
   count: number;
   lastUsed: string; // ISO-8601
@@ -68,7 +73,9 @@ export class MathSymbolStore {
       this._fromJSON(content);
       return;
     } catch (e) {
-      // File doesn't exist or can't be read — that's normal on first run
+      if (isNodeError(e) && e.code !== 'ENOENT') {
+        log(`[MathSymbolStore] error reading config: ${e}`);
+      }
     }
 
     // Migration: check legacy workspaceState
