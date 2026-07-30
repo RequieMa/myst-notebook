@@ -8,6 +8,7 @@ import { MathSymbolStore, MathSymbolProvider } from './mathPalette';
 import { lintCellText, collectMathPaletteItems, DEFAULT_RULES } from './mathLinter';
 import { MathCompletionProvider } from './mathCompletion';
 import { insertMathSymbolQuickPick } from './mathQuickPick';
+import { MATH_SYMBOLS_BY_LATEX } from './mathSymbols';
 import { registerZoteroSetup } from './zoteroSetup';
 import { registerOnboarding } from './openAsNotebook';
 import { applyFocusedNotebookSettings } from './workspaceChrome';
@@ -90,26 +91,52 @@ export function activate(context: vscode.ExtensionContext) {
   // writing feel. Fire-and-forget: async and must not block activation.
   void applyFocusedNotebookSettings();
 
-  // Math symbol palette
-  const store = new MathSymbolStore(context.workspaceState);
+  // Math symbol palette — persistent config-backed store
+  const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+  const store = new MathSymbolStore(workspaceRoot ?? '');
   const provider = new MathSymbolProvider(store);
+
+  // Load config (migrates legacy data if needed). Fire-and-forget:
+  // must not block activation, but items render correctly once loaded.
+  store.load(context.workspaceState).then(() => provider.refresh());
+
+  // Watch for external config changes (git pull, manual edit, etc.)
+  if (workspaceRoot) {
+    const watcher = vscode.workspace.createFileSystemWatcher(
+      new vscode.RelativePattern(
+        vscode.Uri.file(workspaceRoot),
+        '.vscode/myst-symbols.json',
+      ),
+    );
+    watcher.onDidChange(() => {
+      store.load().then(() => provider.refresh());
+    });
+    watcher.onDidCreate(() => {
+      store.load().then(() => provider.refresh());
+    });
+    context.subscriptions.push(watcher);
+  }
+
   context.subscriptions.push(
-    vscode.window.registerTreeDataProvider('myst-notebook.mathPalette', provider)
+    vscode.window.registerTreeDataProvider('myst-notebook.mathPalette', provider),
   );
 
   // Insert-symbol-direct (tree item click)
   context.subscriptions.push(
     vscode.commands.registerCommand(
       'myst-notebook.insertMathSymbolDirect',
-      (latex: string) => insertLatexAtCursor(latex)
-    )
+      (latex: string) => {
+        const sym = MATH_SYMBOLS_BY_LATEX.get(latex);
+        insertLatexAtCursor(latex, sym?.snippet);
+      },
+    ),
   );
 
   // Quick-pick command (Ctrl+Shift+M)
   context.subscriptions.push(
     vscode.commands.registerCommand('myst-notebook.insertMathSymbolPicker', () =>
-      insertMathSymbolQuickPick(store, insertLatexAtCursor)
-    )
+      insertMathSymbolQuickPick(store, insertLatexAtCursor),
+    ),
   );
 
   // Inline \ completion inside $...$ and $$...$$
@@ -117,8 +144,8 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.languages.registerCompletionItemProvider(
       { language: 'markdown' },
       new MathCompletionProvider(store),
-      '\\'
-    )
+      '\\',
+    ),
   );
 
   // Math linter + auto-collect symbols on cell exit
