@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.1.6] - 2026-08-08
+
+### Added
+- **`:::` directive rendering** — MyST colon-fence directives (`:::{note}`, `:::{warning}`, `:::{tip}`, `:::{danger}`, `:::{error}`, `:::{important}`, `:::{hint}`, `:::{attention}`, `:::{caution}`, `:::{seealso}`, `:::{admonition}`) now render inline in the notebook editor with:
+  - **Color-coded left borders and backgrounds** — note=purple, warning=amber, danger=red, important=blue, hint=green, etc.
+  - **Type-specific icons** — 📝 note, ⚠️ warning, 🚨 danger, 💡 tip/hint, etc.
+  - **Full markdown body content** — headings, code fences, tables, math blocks (`$$`), inline formatting (`**bold**`, `*italic*`, `` `code` ``, `[links]()`), and inline math (`$...$`) all render inside admonitions.
+- **Fixed `extendMarkdownIt` activation** — changed from the passive `{ extendMarkdownIt }` return pattern (which the parent `vscode.markdown-it-renderer` never called) to the active `ctx.getRenderer('vscode.markdown-it-renderer').then(api => api.extendMarkdownIt(...))` pattern (same as VS Code's built-in markdown-math extension).
+
+### Fixed
+- **Code fences inside `:::` blocks no longer split the cell** — `splitBlocks()` now correctly tracks `colonDepth` when encountering backtick fences (` ``` `) inside `:::` directive blocks, preventing `flushProse()`/`flushCode()` from fragmenting the cell.
+- **`:::` closers with no preceding blank line are now recognized** — a source normalization pass (`md.parse` monkey-patch) ensures `::: ` always lands on its own line after a paragraph break, preventing markdown-it's paragraph rule from consuming the closer as inline text.
+
+### Changed
+- Removed "MyST colon-fence directives are not rendered" from README Limitations section.
+
 ## [0.1.5] - 2026-07-30
 
 ### Added

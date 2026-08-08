@@ -1,22 +1,6 @@
 # TODO
 
-## 1. `:::` 指令块渲染优化
-
-`:::` fence block（admonitions、callouts 等 MyST directive）目前的输出渲染效果不理想，需要改进。
-
-**现状问题：**
-- `:::{note}` / `:::{warning}` / `:::{important}` 等指令块的渲染样式不够清晰
-- 嵌套 `:::` 的处理可能有问题
-- 与 Jupyter Book / MyST 标准渲染效果有差距
-
-**目标：**
-- 让 `:::` 块在 notebook cell 内有清晰、美观的视觉区分
-- 支持常见 directive 类型（note, warning, important, caution, tip, seealso 等）
-- 正确处理嵌套 directive
-
----
-
-## 2. Graph 可视化功能完善
+## 1. Graph 可视化功能完善
 
 Graph 功能目前只是有一个基本架子，非常不完善，体验不好。
 

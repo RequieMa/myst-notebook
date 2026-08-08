@@ -153,6 +153,24 @@ describe('splitBlocks — construct interactions / precedence', () => {
     expect(blocks[0].text).toBe(text);
   });
 
+  it('does not split a backtick fence nested inside a ::: directive', () => {
+    const text =
+      ':::{tip}\n### Headings\n\nSo do **bold** text.\n\n```python\n# code\ndef hello():\n    print("hi")\n```\n\n| Table | Works |\n|-------|-------|\n| A     | B     |\n\n$$x$$\n:::';
+    const blocks = splitBlocks(text);
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].kind).toBe('prose');
+    expect(blocks[0].text).toBe(text);
+  });
+
+  it('does not split a {code-cell} fence nested inside a ::: directive', () => {
+    const text =
+      ':::{note}\nBefore.\n\n```{code-cell} python\n:tags: [hide-input]\nx = 1\n```\n\nAfter.\n:::';
+    const blocks = splitBlocks(text);
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].kind).toBe('prose');
+    expect(blocks[0].text).toBe(text);
+  });
+
   it('does not split a ::: directive nested inside a $$ block', () => {
     const text = '$$\n:::{note}\nx\n\ny\n$$';
     const blocks = splitBlocks(text);

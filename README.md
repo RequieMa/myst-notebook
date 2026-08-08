@@ -48,6 +48,7 @@ To make MyST Notebook the default for `.md` files: **Command Palette → Configu
 | Capability | What it does | How to use |
 |------------|-------------|------------|
 | **Inline rendering** | Prose and math (`$…$`, `$$…$$`) render in place when you move focus | Just type, then move to another cell |
+| **`:::` directive rendering** | Admonitions (`:::{note}`, `:::{warning}`, `:::{tip}`, `:::{danger}`, etc.) render inline with colored borders, icons, and full markdown body content | Type `:::{note}` then your content, close with `:::` |
 | **Executable code cells** | `{code-cell}` blocks run through Jupyter, output streams live | `Ctrl+Shift+E` to insert, `Shift+Enter` to run, or click `▶ Run` on the cell |
 | **▶ Run button** | Every code cell has a `▶ Run` button at its bottom-right corner | Click `▶ Run` to execute that cell |
 | **Quick-edit** | Switching to a markup cell auto-enters edit mode | Click a different cell, or press Enter on the current one |
@@ -191,7 +192,6 @@ myst-notebook/
 ## Limitations
 
 - **Clicking an already-selected markup cell** does not auto-enter edit mode (VS Code API limitation — no public method to detect clicks on rendered webview content). Switch to a different cell, press Enter, or use the cell toolbar Edit button.
-- **MyST colon-fence directives** (`:::{note}`, `:::{warning}`, `:::{figure}`, etc.) are NOT rendered inline in the notebook editor. VS Code's notebook renderer only supports inline-level markdown, not block-level custom syntax. The directives appear as plain source text while editing — they are correctly processed by `jupyter-book build` at build time. Write the directive syntax as you normally would; the compiler handles the final rendering.
 - **Relative local image paths** in `figure`/`image` directives may not resolve in the renderer sandbox. Use absolute `https://` URLs or data URIs.
 - **CRLF line endings** are out of scope for v1 (LF assumed).
 - **Blank-line normalization** between blocks is canonicalized to one blank line on first save. Already-canonical files round-trip byte-for-byte.

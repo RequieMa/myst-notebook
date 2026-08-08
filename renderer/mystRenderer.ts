@@ -2,22 +2,45 @@ import type MarkdownIt from 'markdown-it';
 import katex from 'katex';
 import { KATEX_CSS } from './generated/katexCss';
 
+/** Minimal subset of VS Code's RendererContext — what we actually use. */
+interface RendererContext {
+  getRenderer(id: string): Promise<{ extendMarkdownIt(fn: (md: MarkdownIt) => MarkdownIt): void } | undefined>;
+}
+
 /**
  * Notebook markup-cell renderer. Extends VS Code's built-in markdown-it with:
  *  - inline `$...$` and block `$$...$$` math (KaTeX)
+ *  - MyST `:::{type}` colon-fence directives (admonitions, callouts)
  *  - MyST fence handling: `{code-cell}` shown as plain code; other fences default.
  *
- * MyST colon-fence directives (`:::{note}`, `:::{warning}`, etc.) are NOT rendered
- * inline — VS Code's notebook renderer uses md.renderInline() for markup cells,
- * which skips both block.ruler and core.ruler processing. The directives remain as
- * plain source text in the editor and are correctly rendered by `jupyter-book build`.
- * See README § Limitations.
+ * Uses the markdown-math pattern: ctx.getRenderer('vscode.markdown-it-renderer')
+ * then calls parent.extendMarkdownIt() to hook into the live markdown-it instance.
+ * Returning { extendMarkdownIt } from activate() does NOT work — the parent
+ * renderer never calls the child's extendMarkdownIt.
  *
  * Bundled for the notebook webview (browser/ESM) → dist/renderer/mystRenderer.js.
  */
-export const activate = () => ({
-  extendMarkdownIt(md: MarkdownIt) {
-    ensureKatexCss();
+export async function activate(ctx: RendererContext) {
+  const markdownItRenderer = (await ctx.getRenderer('vscode.markdown-it-renderer')) as
+    | { extendMarkdownIt(fn: (md: MarkdownIt) => MarkdownIt): void }
+    | undefined;
+  if (!markdownItRenderer) {
+    throw new Error(`Could not load 'vscode.markdown-it-renderer'`);
+  }
+
+  ensureKatexCss();
+
+  markdownItRenderer.extendMarkdownIt((md: MarkdownIt) => {
+    // Source normalization: markdown-it's paragraph rule greedily consumes
+    // consecutive non-blank lines, so a `:::` closer immediately after a
+    // text line would be swallowed as paragraph content and never reach our
+    // block rule.  Insert a blank line before every `:::$` so the closer
+    // always lands on its own line after a paragraph break.
+    const origParse = md.parse.bind(md);
+    (md as any).parse = (src: string, env?: any) => {
+      const normalized = src.replace(/([^\n])\n(:::[\s]*)$/gm, '$1\n\n$2');
+      return origParse(normalized, env);
+    };
 
     // Inline math: $...$  (single-dollar, no surrounding space inside the delims)
     md.inline.ruler.after('escape', 'myst_math_inline', (state, silent) => {
@@ -76,6 +99,77 @@ export const activate = () => ({
     md.renderer.rules['myst_math_block'] = (tokens, idx) =>
       renderMath(tokens[idx].content, true) + '\n';
 
+    // ::: colon-fence directives (admonitions, callouts, etc.)
+    //
+    // Uses an open/close TOKEN-PAIR pattern (like markdown-it-container).
+    // The inner content between :::{type} and ::: is processed NATIVELY by
+    // markdown-it's block parser — headings, code fences, tables, math
+    // blocks all get their standard tokens and renderer rules. No nested
+    // md.render() call needed.
+    //
+    // Depth is tracked in state.env._mystAdmonDepth so a bare ::: closer
+    // only matches when we're actually inside an admonition.
+    md.block.ruler.before('fence', 'myst_colon_fence', (state, startLine, endLine, silent) => {
+      const startPos = state.bMarks[startLine] + state.tShift[startLine];
+      const max = state.eMarks[startLine];
+      const line = state.src.slice(startPos, max).trim();
+
+      const isOpener = /^:{3,}\s*\{/.test(line);
+      const isCloser = /^:{3,}$/.test(line);
+
+      if (!isOpener && !isCloser) return false;
+
+      // A bare ::: is only a closer if we're inside at least one admonition.
+      // Otherwise it's just text (e.g. in a code example about MyST).
+      if (isCloser) {
+        const depth: number = (state.env as any)._mystAdmonDepth ?? 0;
+        if (depth <= 0) return false;
+      }
+
+      if (silent) return true;
+
+      if (isOpener) {
+        const depth: number = (state.env as any)._mystAdmonDepth ?? 0;
+        (state.env as any)._mystAdmonDepth = depth + 1;
+
+        const typeMatch = /^:{3,}\s*\{(.+?)\}/.exec(line);
+        const admonType = typeMatch ? typeMatch[1] : 'note';
+        const token = state.push('myst_admonition_open', 'div', 1);
+        token.attrs = [['class', `myst-admonition myst-admonition-${admonType}`]];
+        token.block = true;
+        token.map = [startLine, startLine + 1];
+      } else {
+        const depth: number = (state.env as any)._mystAdmonDepth ?? 0;
+        (state.env as any)._mystAdmonDepth = Math.max(0, depth - 1);
+
+        const token = state.push('myst_admonition_close', 'div', -1);
+        token.block = true;
+        token.map = [startLine, startLine + 1];
+      }
+
+      state.line = startLine + 1;
+      return true;
+    });
+
+    // Renderer rules for the open/close token pair.
+    // Inner content between them is rendered by markdown-it's standard
+    // block/inline rules — no need for us to call md.render() at all.
+
+    md.renderer.rules['myst_admonition_open'] = (tokens, idx) => {
+      const token = tokens[idx];
+      const typeClass = token.attrs?.[0]?.[1] ?? '';
+      const typeName = typeClass.replace('myst-admonition myst-admonition-', '');
+      const icon = ADMONITION_ICONS[typeName] ?? ADMONITION_ICONS.note;
+      const colors = ADMONITION_COLORS[typeName] ?? ADMONITION_COLORS.note;
+      return `<div class="myst-admonition myst-admonition-${md.utils.escapeHtml(typeName)}" style="border-left: 4px solid ${colors.border}; background: ${colors.bg}; padding: 8px 16px; margin: 8px 0; border-radius: 0 4px 4px 0;">
+<div style="font-weight: 600; color: ${colors.title}; margin-bottom: 4px;">${icon} ${md.utils.escapeHtml(typeName.toUpperCase())}</div>
+<div class="myst-admonition-body">`;
+    };
+
+    md.renderer.rules['myst_admonition_close'] = () => {
+      return '</div></div>\n';
+    };
+
     // Fence handling: show {code-cell} blocks as plain code; default otherwise.
     const defaultFence =
       md.renderer.rules.fence ||
@@ -91,8 +185,38 @@ export const activate = () => ({
     };
 
     return md;
-  },
-});
+  });
+}
+
+/** Icon/emoji for each admonition type. */
+const ADMONITION_ICONS: Record<string, string> = {
+  note: '📝',
+  warning: '⚠️',
+  danger: '🚨',
+  error: '❌',
+  important: '🔔',
+  hint: '💡',
+  tip: '💡',
+  attention: '👀',
+  caution: '⚠️',
+  seealso: '🔗',
+  admonition: '📝',
+};
+
+/** Color scheme for each admonition type. */
+const ADMONITION_COLORS: Record<string, { border: string; bg: string; title: string }> = {
+  note: { border: '#6c5ce7', bg: 'rgba(108,92,231,0.08)', title: '#5b4cc4' },
+  warning: { border: '#fdcb6e', bg: 'rgba(253,203,110,0.12)', title: '#c7a041' },
+  danger: { border: '#e17055', bg: 'rgba(225,112,85,0.10)', title: '#c0392b' },
+  error: { border: '#e17055', bg: 'rgba(225,112,85,0.10)', title: '#c0392b' },
+  important: { border: '#0984e3', bg: 'rgba(9,132,227,0.08)', title: '#0870c4' },
+  hint: { border: '#00b894', bg: 'rgba(0,184,148,0.08)', title: '#009b7d' },
+  tip: { border: '#00b894', bg: 'rgba(0,184,148,0.08)', title: '#009b7d' },
+  attention: { border: '#e17055', bg: 'rgba(225,112,85,0.08)', title: '#c0392b' },
+  caution: { border: '#fdcb6e', bg: 'rgba(253,203,110,0.12)', title: '#c7a041' },
+  seealso: { border: '#74b9ff', bg: 'rgba(116,185,255,0.08)', title: '#5e9fd4' },
+  admonition: { border: '#b2bec3', bg: 'rgba(178,190,195,0.10)', title: '#636e72' },
+};
 
 function renderMath(expr: string, displayMode: boolean): string {
   try {

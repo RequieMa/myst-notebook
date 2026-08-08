@@ -72,8 +72,15 @@ export function splitBlocks(text: string): Block[] {
         // closing backtick fence (must be a bare fence at least as long as the opener)
         inBacktick = false;
         openLen = 0;
-        if (pendingCode) { flushCode(pendingCode.lang); pendingCode = null; }
-        else { flushProse(); }
+        if (colonDepth > 0) {
+          // Inside a ::: directive — code fence is part of the prose block.
+          pendingCode = null;
+        } else if (pendingCode) {
+          flushCode(pendingCode.lang);
+          pendingCode = null;
+        } else {
+          flushProse();
+        }
       }
       continue;
     }
@@ -91,8 +98,9 @@ export function splitBlocks(text: string): Block[] {
     }
 
     if (bt.fence) {
-      // opening a backtick fence
-      flushProse();
+      // opening a backtick fence — only flush preceding content as a separate
+      // block when we are NOT already inside a `:::` directive.
+      if (colonDepth === 0) flushProse();
       inBacktick = true;
       openLen = bt.len;
       pendingCode = bt.codeCell ? { lang: bt.lang } : null;
