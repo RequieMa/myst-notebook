@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.1.6] - 2026-08-08
+## [0.2.0] - 2026-08-08
 
 ### Added
 - **`:::` directive rendering** — MyST colon-fence directives (`:::{note}`, `:::{warning}`, `:::{tip}`, `:::{danger}`, `:::{error}`, `:::{important}`, `:::{hint}`, `:::{attention}`, `:::{caution}`, `:::{seealso}`, `:::{admonition}`) now render inline in the notebook editor with:
