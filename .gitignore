@@ -24,3 +24,9 @@ coverage/
 
 # TypeScript incremental build cache
 *.tsbuildinfo
+
+# User bibliography data (Zotero export / CSL JSON)
+csl-data.json
+
+# Graph test fixtures
+test-graph/
