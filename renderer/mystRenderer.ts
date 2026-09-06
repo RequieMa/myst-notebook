@@ -1,6 +1,7 @@
 import type MarkdownIt from 'markdown-it';
 import katex from 'katex';
 import { KATEX_CSS } from './generated/katexCss';
+import { isHtmlComment, renderCommentInline, renderCommentBlock } from '../src/core/mystComment';
 
 /** Minimal subset of VS Code's RendererContext — what we actually use. */
 interface RendererContext {
@@ -182,6 +183,27 @@ export async function activate(ctx: RendererContext) {
         )}</code></pre>`;
       }
       return defaultFence(tokens, idx, options, env, self);
+    };
+
+    // HTML comments: render `<!-- ... -->` visibly with their markers.
+    // (By default the browser treats them as invisible HTML comment nodes.)
+    const defaultHtmlBlock =
+      md.renderer.rules.html_block ||
+      ((tokens, idx, options, _env, self) => self.renderToken(tokens, idx, options));
+    const defaultHtmlInline =
+      md.renderer.rules.html_inline ||
+      ((tokens, idx, options, _env, self) => self.renderToken(tokens, idx, options));
+
+    md.renderer.rules.html_block = (tokens, idx, options, env, self) => {
+      const content = (tokens[idx].content || '').trim();
+      if (isHtmlComment(content)) return renderCommentBlock(content);
+      return defaultHtmlBlock(tokens, idx, options, env, self);
+    };
+
+    md.renderer.rules.html_inline = (tokens, idx, options, env, self) => {
+      const content = (tokens[idx].content || '').trim();
+      if (isHtmlComment(content)) return renderCommentInline(content);
+      return defaultHtmlInline(tokens, idx, options, env, self);
     };
 
     return md;
