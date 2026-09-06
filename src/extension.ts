@@ -17,6 +17,7 @@ import { registerGraphFeatures } from './graph';
 import { registerCellStatusBar } from './cellStatusBar';
 import { registerSingleClickEdit } from './cellFocus';
 import { registerFontSize } from './fontSize';
+import { registerCellSelection } from './cellSelection';
 
 export function activate(context: vscode.ExtensionContext) {
   initLog(context);
@@ -40,6 +41,9 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Font-size shortcuts + status-bar dropdown
   registerFontSize(context);
+
+  // Keyboard cell multi-select (Ctrl+Shift+Up/Down)
+  registerCellSelection(context);
 
   // Command: execute a specific cell (fired by the status bar ▶ Run button)
   context.subscriptions.push(
