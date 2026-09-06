@@ -150,6 +150,16 @@
         "command": "myst-notebook.setFontSize",
         "title": "MyST: Set Font Size",
         "category": "MyST"
+      },
+      {
+        "command": "myst-notebook.extendSelectionUp",
+        "title": "MyST: Extend Cell Selection Up",
+        "category": "MyST"
+      },
+      {
+        "command": "myst-notebook.extendSelectionDown",
+        "title": "MyST: Extend Cell Selection Down",
+        "category": "MyST"
       }
     ],
     "keybindings": [
@@ -202,6 +212,16 @@
         "command": "myst-notebook.decreaseFontSize",
         "key": "ctrl+alt+-",
         "when": "notebookType == 'myst-notebook' && notebookEditorFocused"
+      },
+      {
+        "command": "myst-notebook.extendSelectionUp",
+        "key": "ctrl+shift+up",
+        "when": "notebookType == 'myst-notebook' && notebookEditorFocused && !inputFocus"
+      },
+      {
+        "command": "myst-notebook.extendSelectionDown",
+        "key": "ctrl+shift+down",
+        "when": "notebookType == 'myst-notebook' && notebookEditorFocused && !inputFocus"
       }
     ],
     "menus": {
