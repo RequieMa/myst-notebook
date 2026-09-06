@@ -135,6 +135,21 @@
         "command": "myst-notebook.runCell",
         "title": "MyST: Run Cell",
         "category": "MyST"
+      },
+      {
+        "command": "myst-notebook.increaseFontSize",
+        "title": "MyST: Increase Font Size",
+        "category": "MyST"
+      },
+      {
+        "command": "myst-notebook.decreaseFontSize",
+        "title": "MyST: Decrease Font Size",
+        "category": "MyST"
+      },
+      {
+        "command": "myst-notebook.setFontSize",
+        "title": "MyST: Set Font Size",
+        "category": "MyST"
       }
     ],
     "keybindings": [
@@ -176,6 +191,16 @@
       {
         "command": "myst-notebook.convertToMarkdown",
         "key": "ctrl+shift+r",
+        "when": "notebookType == 'myst-notebook' && notebookEditorFocused"
+      },
+      {
+        "command": "myst-notebook.increaseFontSize",
+        "key": "ctrl+alt+=",
+        "when": "notebookType == 'myst-notebook' && notebookEditorFocused"
+      },
+      {
+        "command": "myst-notebook.decreaseFontSize",
+        "key": "ctrl+alt+-",
         "when": "notebookType == 'myst-notebook' && notebookEditorFocused"
       }
     ],
