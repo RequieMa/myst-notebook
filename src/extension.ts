@@ -16,6 +16,7 @@ import { initLog, log } from './log';
 import { registerGraphFeatures } from './graph';
 import { registerCellStatusBar } from './cellStatusBar';
 import { registerSingleClickEdit } from './cellFocus';
+import { registerFontSize } from './fontSize';
 
 export function activate(context: vscode.ExtensionContext) {
   initLog(context);
@@ -36,6 +37,9 @@ export function activate(context: vscode.ExtensionContext) {
 
   // Single-click to enter edit mode (selection-change path)
   registerSingleClickEdit(context);
+
+  // Font-size shortcuts + status-bar dropdown
+  registerFontSize(context);
 
   // Command: execute a specific cell (fired by the status bar ▶ Run button)
   context.subscriptions.push(
