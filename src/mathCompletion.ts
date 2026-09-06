@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
-import { MATH_SYMBOLS } from './mathSymbols';
+import { MATH_SYMBOLS, MATH_SYMBOLS_BY_LATEX } from './mathSymbols';
+import { buildCustomCompletionEntries } from './core/mathCompletionItems';
 import { MathSymbolStore } from './mathPalette';
 import { isInsideMathContext } from './mathContextDetector';
 
@@ -62,6 +63,31 @@ export class MathCompletionProvider implements vscode.CompletionItemProvider {
 
       return item;
     });
+
+    // Custom saved LaTeX snippets (added via Ctrl+Alt+S)
+    const customEntries = buildCustomCompletionEntries(
+      this.store.getAll(),
+      MATH_SYMBOLS_BY_LATEX,
+      (latex) => this.store.getStats(latex)?.count ?? 0,
+    );
+    for (const entry of customEntries) {
+      const item = new vscode.CompletionItem(entry.latex, vscode.CompletionItemKind.Value);
+      item.detail = 'saved';
+      item.documentation = 'Saved LaTeX snippet';
+      item.insertText = entry.latex;
+      if (replaceRange) {
+        item.range = replaceRange;
+      }
+      item.sortText = entry.sortText;
+      if (this.acceptCommand) {
+        item.command = {
+          command: this.acceptCommand.command,
+          title: this.acceptCommand.title,
+          arguments: [entry.latex],
+        };
+      }
+      items.push(item);
+    }
 
     return items;
   }
