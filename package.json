@@ -160,6 +160,11 @@
         "command": "myst-notebook.extendSelectionDown",
         "title": "MyST: Extend Cell Selection Down",
         "category": "MyST"
+      },
+      {
+        "command": "myst-notebook.saveSelectedLatex",
+        "title": "MyST: Save Selected LaTeX",
+        "category": "MyST"
       }
     ],
     "keybindings": [
@@ -222,6 +227,11 @@
         "command": "myst-notebook.extendSelectionDown",
         "key": "ctrl+shift+down",
         "when": "notebookType == 'myst-notebook' && notebookEditorFocused && !inputFocus"
+      },
+      {
+        "command": "myst-notebook.saveSelectedLatex",
+        "key": "ctrl+alt+s",
+        "when": "notebookType == 'myst-notebook' && editorTextFocus && editorHasSelection"
       }
     ],
     "menus": {

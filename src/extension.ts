@@ -156,6 +156,31 @@ export function activate(context: vscode.ExtensionContext) {
     ),
   );
 
+  // Command: save the exact cursor-selected LaTeX in the current cell
+  context.subscriptions.push(
+    vscode.commands.registerCommand('myst-notebook.saveSelectedLatex', () => {
+      const editor = vscode.window.activeTextEditor;
+      const nbEditor = vscode.window.activeNotebookEditor;
+      if (!editor || !nbEditor || nbEditor.notebook.notebookType !== 'myst-notebook') {
+        void vscode.window.showInformationMessage('MyST: Save LaTeX works inside a MyST notebook cell.');
+        return;
+      }
+      const isCell = nbEditor.notebook.getCells().some((c) => c.document === editor.document);
+      if (!isCell) {
+        void vscode.window.showInformationMessage('MyST: select text inside a notebook cell first.');
+        return;
+      }
+      const text = editor.document.getText(editor.selection).trim();
+      if (!text) {
+        void vscode.window.showInformationMessage('MyST: select LaTeX text first.');
+        return;
+      }
+      store.add(text);
+      provider.refresh();
+      void vscode.window.showInformationMessage(`MyST: saved "${text}" to math symbols.`);
+    }),
+  );
+
   // Inline \ completion inside $...$ and $$...$$
   context.subscriptions.push(
     vscode.languages.registerCompletionItemProvider(
