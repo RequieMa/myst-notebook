@@ -3,6 +3,7 @@ import { MATH_SYMBOLS, MATH_SYMBOLS_BY_LATEX } from './mathSymbols';
 import { buildCustomCompletionEntries } from './core/mathCompletionItems';
 import { MathSymbolStore } from './mathPalette';
 import { isInsideMathContext } from './mathContextDetector';
+import { shouldSuppressMathCompletion } from './core/mathCompletion';
 
 
 export class MathCompletionProvider implements vscode.CompletionItemProvider {
@@ -21,6 +22,7 @@ export class MathCompletionProvider implements vscode.CompletionItemProvider {
 
     const line = document.lineAt(position).text;
     const linePrefix = line.slice(0, position.character);
+    if (shouldSuppressMathCompletion(linePrefix)) return undefined;
     const lastBackslash = linePrefix.lastIndexOf('\\');
     const replaceRange =
       lastBackslash >= 0
