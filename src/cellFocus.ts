@@ -11,35 +11,120 @@ import * as vscode from 'vscode';
  * read/set a cell's edit state (Editing vs Preview). See microsoft/vscode-
  * discussions#1839.
  *
- * Auto-preview: when the selection moves away from the cell being edited, we
- * call `notebook.cell.quitEdit` to finalise it back into preview. quitEdit
- * acts on the cell holding VS Code's internal focus pointer (the one in edit
- * mode) and does not move that pointer, so we then re-assert the selection
- * and enter edit mode on the newly-selected cell (pattern proven in
- * enterSplit.ts). For re-clicking the same cell, VS Code's built-in cell
- * toolbar ("...") provides an Edit action as fallback.
+ * Behavior:
+ * - Click a markup cell → it enters edit mode.
+ * - Click a different cell (or empty space) → the previously edited cell
+ *   previews; if the new selection is a single markup cell, it enters edit
+ *   mode (pattern proven in enterSplit.ts).
+ * - Press Escape while editing → the cell previews and NO cell re-enters edit
+ *   mode, leaving the notebook list free for multi-select / navigation.
+ * - Arrow keys (after Escape) → move the selection one cell without entering
+ *   edit mode.
+ *
+ * The Escape / arrow-key cases cannot be told apart from a click by the event
+ * data alone: Escape re-emits the SAME selection, and arrow keys move the
+ * selection by exactly one cell. So we (1) detect Escape via an unchanged
+ * selection signature and enter "navigation mode", and (2) while navigating,
+ * treat single adjacent steps as arrow keys (no edit) and any other change as
+ * a click (edit + leave navigation mode).
+ *
+ * Auto-preview uses `notebook.quitEditAllCells` (VS Code ≥ 1.111), which
+ * previews every editing markup cell regardless of list focus. On older VS
+ * Code it falls back to `notebook.cell.quitEdit` (which targets the focused
+ * cell — correct on the old focus model).
  */
 export function registerSingleClickEdit(context: vscode.ExtensionContext): void {
+  // Re-entrancy guard: `notebook.cell.edit` and `notebook.quitEditAllCells`
+  // fire `onDidChangeNotebookEditorSelection` unconditionally (focusElement →
+  // updateSelectionsState with forceEventEmit=true). This drops those echoes
+  // and prevents a concurrent second handler from racing the first.
+  const handling = new Set<string>();
+
+  // Last selection signature per notebook, to detect an UNCHANGED selection
+  // (Escape's quit-edit re-emits the same selection, and our own commands do
+  // too — the latter are already caught by `handling`).
+  const lastSelections = new Map<string, string>();
+
+  // Notebooks in "navigation mode": the user quit edit via Escape and is now
+  // moving with arrow keys. While navigating, adjacent single steps do NOT
+  // enter edit mode.
+  const navigating = new Set<string>();
+
+  // Last single-cell selection start, for the adjacent-step (arrow-key) check.
+  const lastStart = new Map<string, number>();
+
+  context.subscriptions.push(
+    vscode.workspace.onDidCloseNotebookDocument((nb) => {
+      const key = nb.uri.toString();
+      handling.delete(key);
+      lastSelections.delete(key);
+      navigating.delete(key);
+      lastStart.delete(key);
+    }),
+  );
+
   context.subscriptions.push(
     vscode.window.onDidChangeNotebookEditorSelection(async (e) => {
       const nbEditor = e.notebookEditor;
       const nb = nbEditor.notebook;
       if (nb.notebookType !== 'myst-notebook') return;
+      const key = nb.uri.toString();
 
-      // Auto-preview: revert whatever cell is currently in edit mode back to
-      // its rendered preview. No-op when nothing is being edited.
-      await vscode.commands.executeCommand('notebook.cell.quitEdit');
+      if (handling.has(key)) return;
 
-      // Existing single-click-edit logic (single markup cell only).
-      if (e.selection.isEmpty) return;
-      if (e.selection.end - e.selection.start > 1) return;
+      const signature = e.selections.map((s) => `${s.start}:${s.end}`).join(',');
 
-      const cell = nb.cellAt(e.selection.start);
-      if (cell.kind !== vscode.NotebookCellKind.Markup) return;
+      // Resolve the single-markup-cell target (cell index) from the selection.
+      let target: number | undefined;
+      if (e.selections.length === 1) {
+        const selection = e.selections[0];
+        if (!selection.isEmpty && selection.end - selection.start === 1) {
+          const cell = nb.cellAt(selection.start);
+          if (cell.kind === vscode.NotebookCellKind.Markup) {
+            target = cell.index;
+          }
+        }
+      }
 
-      // Re-assert selection, then enter edit mode (enterSplit.ts pattern).
-      nbEditor.selection = new vscode.NotebookRange(cell.index, cell.index + 1);
-      await vscode.commands.executeCommand('notebook.cell.edit');
+      // Escape (quit-edit) re-emits the SAME selection. Enter navigation mode
+      // so the following arrow-key moves do not yank a cell back into edit.
+      if (lastSelections.get(key) === signature) {
+        if (target !== undefined) navigating.add(key);
+        return;
+      }
+      lastSelections.set(key, signature);
+
+      // In navigation mode, a single adjacent step is an arrow key — navigate
+      // without editing. Anything else (non-adjacent jump, empty/multi/code
+      // selection) is a click/other action — leave navigation mode.
+      if (navigating.has(key)) {
+        const prev = lastStart.get(key);
+        if (target !== undefined && prev !== undefined && Math.abs(target - prev) === 1) {
+          lastStart.set(key, target);
+          return;
+        }
+        navigating.delete(key);
+      }
+
+      if (target !== undefined) lastStart.set(key, target);
+      else lastStart.delete(key);
+
+      handling.add(key);
+      try {
+        // Auto-preview: revert every cell in edit mode back to preview.
+        try {
+          await vscode.commands.executeCommand('notebook.quitEditAllCells');
+        } catch {
+          await vscode.commands.executeCommand('notebook.cell.quitEdit');
+        }
+
+        if (target === undefined) return;
+
+        nbEditor.selection = new vscode.NotebookRange(target, target + 1);
+        await vscode.commands.executeCommand('notebook.cell.edit');
+      } finally {
+        handling.delete(key);
+      }
     }),
   );
 }

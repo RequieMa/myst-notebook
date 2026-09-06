@@ -1,5 +1,9 @@
 # TODO
 
+## 待修复（当前轮）
+
+- [ ] **`Ctrl+↑/↓` 多选只能选中 2 个单元格，无法持续扩展成真正的多选** — 根因：每次 `Ctrl+↑/↓` 扩展出多选后，`cellFocus.ts` 的 auto-preview 会因 selection change 触发 `notebook.quitEditAllCells`；其内部 `focusNotebookCell(activeCell, 'container')` → `focusElement` 会把 selection 重置回单个 `activeCell`，导致多选被折叠、`cellSelection.ts` 的锚点状态丢失，下次按键重新锚定又只得到 2 个单元格。修复方向：当 selection 是多单元格区间时跳过 auto-preview，或改用不改变 selection 的 preview 方式。
+
 ## 本次任务总览（v0.2.5 — 6 个 UX fix）
 
 > 实现方式：**新 session**，用 `subagent-driven-development` + 每 subagent 一个 `git worktree` 并行开发。

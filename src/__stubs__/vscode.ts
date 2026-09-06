@@ -46,6 +46,9 @@ export class NotebookCellOutput {
 
 export class NotebookRange {
   constructor(public start: number, public end: number) {}
+  get isEmpty(): boolean {
+    return this.start === this.end;
+  }
 }
 
 export class Position {
@@ -135,15 +138,25 @@ function createEvent<T>(): ((listener: (e: T) => any, thisArgs?: any, disposable
 }
 
 export class NotebookCellStatusBarItem {
-  text: string = '';
+  text: string;
+  alignment: NotebookCellStatusBarAlignment;
   command?: string | { command: string; arguments?: any[]; title: string };
   tooltip?: string;
-  alignment: NotebookCellStatusBarAlignment = NotebookCellStatusBarAlignment.Right;
   priority?: number;
   accessibilityInformation?: { label: string };
-  dispose() {}
-  show() {}
-  hide() {}
+  constructor(text: string, alignment: NotebookCellStatusBarAlignment) {
+    this.text = text;
+    this.alignment = alignment;
+  }
+}
+
+/** Stub matching vscode.NotebookCellStatusBarItemProvider. */
+export interface NotebookCellStatusBarItemProvider {
+  onDidChangeCellStatusBarItems?: (listener: () => any) => { dispose: () => void };
+  provideCellStatusBarItems(
+    cell: any,
+    token?: any,
+  ): NotebookCellStatusBarItem | NotebookCellStatusBarItem[];
 }
 
 export const NotebookEdit = {
@@ -169,14 +182,20 @@ export const Uri = {
   },
 };
 
+const statusBarProviders: NotebookCellStatusBarItemProvider[] = [];
+
 export const notebooks = {
-  createNotebookCellStatusBarItem(
-    _cell: any,
-    alignment?: NotebookCellStatusBarAlignment,
-  ): NotebookCellStatusBarItem {
-    const item = new NotebookCellStatusBarItem();
-    if (alignment !== undefined) item.alignment = alignment;
-    return item;
+  registerNotebookCellStatusBarItemProvider(
+    _notebookType: string,
+    provider: NotebookCellStatusBarItemProvider,
+  ): { dispose: () => void } {
+    statusBarProviders.push(provider);
+    return { dispose: () => {} };
+  },
+  /** Test hook: providers registered since the last reset. */
+  _statusBarProviders: statusBarProviders,
+  _resetStatusBarProviders(): void {
+    statusBarProviders.length = 0;
   },
   onDidOpenNotebookDocument: createEvent<any>(),
   onDidChangeNotebookCells: createEvent<any>(),
@@ -184,7 +203,7 @@ export const notebooks = {
 };
 
 export const window = {
-  onDidChangeNotebookEditorSelection: createEvent<{ notebookEditor: any; selection: any }>(),
+  onDidChangeNotebookEditorSelection: createEvent<{ notebookEditor: any; selections: any[] }>(),
   _activeNotebookEditor: undefined as any,
   get activeNotebookEditor(): any {
     return this._activeNotebookEditor;

@@ -50,7 +50,7 @@ To make MyST Notebook the default for `.md` files: **Command Palette → Configu
 | **Inline rendering** | Prose and math (`$…$`, `$$…$$`) render in place when you move focus | Just type, then move to another cell |
 | **`:::` directive rendering** | Admonitions (`:::{note}`, `:::{warning}`, `:::{tip}`, `:::{danger}`, etc.) render inline with colored borders, icons, and full markdown body content | Type `:::{note}` then your content, close with `:::` |
 | **Executable code cells** | `{code-cell}` blocks run through Jupyter, output streams live | `Ctrl+Shift+E` to insert, `Shift+Enter` to run, or click `▶ Run` on the cell |
-| **▶ Run button** | Every code cell has a `▶ Run` button at its bottom-right corner | Click `▶ Run` to execute that cell |
+| **▶ Run button** | Every code cell has a `▶ Run` button at its bottom-right corner that shows `⏳ Running...` while the cell executes | Click `▶ Run` to execute that cell |
 | **Quick-edit** | Switching to a markup cell auto-enters edit mode | Click a different cell, or press Enter on the current one |
 | **Knowledge graph** | `[[wikilinks]]`, backlinks, and a D3 force graph — MyST-aware, including `{cite}` roles as nodes | `Ctrl+Shift+G` to open the graph |
 | **Zotero citations** | Insert `{cite}` references from your Zotero library, one command to configure | Run **MyST: Configure Zotero Citations**, then `Alt+Shift+Z` |
@@ -145,6 +145,7 @@ Pick a reference in the Zotero popup → JSON describing your selection is retur
 | **Ctrl+Shift+R** | Convert current cell to Markdown |
 | **Ctrl+Shift+D** | Insert display-only code block below |
 | **Ctrl+D** | Delete selected cell (when not in edit mode) |
+| **Ctrl+↑ / Ctrl+↓** | Extend / shrink cell selection (multi-select) |
 
 ### Math & citations
 

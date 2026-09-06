@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.2.6] - 2026-09-06
+
+### Changed
+- **Multi-select now on `Ctrl+↑/↓`** — the keyboard cell multi-select shortcut moved from `Ctrl+Shift+↑/↓` to `Ctrl+↑/↓` (no Shift), which previously scrolled. Holding `Ctrl+↑` or `Ctrl+↓` extends/shrinks the cell selection.
+
+### Fixed
+- **Single-click edit crash on VS Code ≥ 1.95** — `NotebookEditorSelectionChangeEvent.selection` was renamed to `selections` (the old field is `undefined` on newer VS Code), so single-click-to-edit threw. Migrated to `selections`; auto-preview was unaffected because it ran before the offending access.
+- **"Running..." status only on `▶ Run` clicks** — `Shift+Enter` and the built-in Run button bypassed the wrapped `execute`, so the cell status bar never flipped to `⏳ Running...` on those paths. Execution state now flows through a `MystController.onDidChangeCellExecution` event, so every run path shows the indicator.
+- **Pre-existing type errors** — `@types/vscode@^1.85.0` resolves to 1.125.0, which removed `createNotebookCellStatusBarItem` and `NotebookCellStatusBarItem.dispose` and made the private `execute` inaccessible externally. Migrated the status bar to the `registerNotebookCellStatusBarItemProvider` provider API and made `execute` public; `tsc --noEmit` is now clean.
+
 ## [0.2.5] - 2026-09-05
 
 ### Added

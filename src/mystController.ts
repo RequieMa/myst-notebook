@@ -23,6 +23,19 @@ export class MystController {
   private readonly controller: vscode.NotebookController;
   private readonly sessions = new Map<string, KernelSession>();
   private readonly pending = new Map<string, Promise<KernelSession | undefined>>();
+  private readonly _onDidChangeCellExecution = new vscode.EventEmitter<{
+    notebook: vscode.NotebookDocument;
+    cells: vscode.NotebookCell[];
+    running: boolean;
+  }>();
+
+  /**
+   * Fires when code cells start (`running: true`) or finish (`running: false`)
+   * executing. Subscribed by cellStatusBar to drive the "Running..." item. It
+   * covers both the status-bar ▶ Run button and the built-in Run / Shift+Enter,
+   * because the controller's executeHandler is bound to this same `execute`.
+   */
+  readonly onDidChangeCellExecution = this._onDidChangeCellExecution.event;
 
   constructor(private readonly memento: vscode.Memento) {
     this.controller = vscode.notebooks.createNotebookController(
@@ -151,7 +164,26 @@ export class MystController {
     return session;
   }
 
-  private async execute(
+  async execute(
+    cells: vscode.NotebookCell[],
+    notebook: vscode.NotebookDocument
+  ): Promise<void> {
+    const runningCells = cells.filter(
+      (c) => c.kind === vscode.NotebookCellKind.Code,
+    );
+    if (runningCells.length > 0) {
+      this._onDidChangeCellExecution.fire({ notebook, cells: runningCells, running: true });
+    }
+    try {
+      await this.runCells(cells, notebook);
+    } finally {
+      if (runningCells.length > 0) {
+        this._onDidChangeCellExecution.fire({ notebook, cells: runningCells, running: false });
+      }
+    }
+  }
+
+  private async runCells(
     cells: vscode.NotebookCell[],
     notebook: vscode.NotebookDocument
   ): Promise<void> {
@@ -331,6 +363,7 @@ export class MystController {
       void s.dispose();
     }
     this.sessions.clear();
+    this._onDidChangeCellExecution.dispose();
     this.controller.dispose();
   }
 }
