@@ -30,3 +30,6 @@ csl-data.json
 
 # Graph test fixtures
 test-graph/
+
+# Git worktrees for parallel subagent development
+.worktrees/
