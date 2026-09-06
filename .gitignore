@@ -33,3 +33,6 @@ test-graph/
 
 # Git worktrees for parallel subagent development
 .worktrees/
+
+# Project-local pi agent definitions
+.pi/

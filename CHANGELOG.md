@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.5] - 2026-09-05
+
+### Added
+- **Font-size shortcuts + status-bar dropdown** — `Ctrl+Alt+=` / `Ctrl+Alt+-` step the notebook font size (8–32px), persisted to user settings; a status-bar item shows the current size and opens a QuickPick on click.
+- **Keyboard cell multi-select** — `Ctrl+Shift+↑/↓` extend/shrink the cell selection with text-editor-style anchor behavior, so multi-selected cells can be copied/pasted natively.
+- **HTML comments visible in preview** — markdown `<!-- ... -->` comments now render in gray italic with their markers instead of being hidden.
+- **Save selected LaTeX** — `Ctrl+Alt+S` saves the exact cursor-selected LaTeX in the current cell to the math-symbol store; saved snippets appear in the Math Palette, QuickPick, and `\` completion.
+
+### Fixed
+- **Auto-preview on focus loss** — moving the selection to another cell now reverts the previously-edited cell to its rendered preview.
+- **Completion after `\\`** — typing a LaTeX line break (`\\`) now hides the `\` completion list instead of leaving it open to swallow Tab/Enter.
+
 ## [0.2.0] - 2026-08-08
 
 ### Added

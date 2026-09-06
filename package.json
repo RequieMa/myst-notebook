@@ -2,7 +2,7 @@
   "name": "myst-notebook",
   "displayName": "MyST Notebook",
   "description": "Edit MyST Markdown (.md) in VS Code's notebook editor: rendered prose, math, and executable code cells.",
-  "version": "0.2.0",
+  "version": "0.2.5",
   "publisher": "RequieMa",
   "license": "MIT",
   "icon": "icon.png",

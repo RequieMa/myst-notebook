@@ -26,3 +26,7 @@ TODO.md
 memory/**
 CLAUDE.md
 FUNDING.yml
+.worktrees/**
+.pi/**
+test-graph/**
+csl-data.json
