@@ -152,7 +152,8 @@ Pick a reference in the Zotero popup → JSON describing your selection is retur
 | Key | Action |
 |-----|--------|
 | **`\`** inside `$…$` or `$$…$$` | Autocomplete LaTeX symbols (snippets for brace commands) |
-| **Ctrl+Shift+M** | Open math symbol picker (recently used first) |
+| **Ctrl+Alt+S** | Save the selected LaTeX to the math symbol store |
+| **Ctrl+Shift+M** | Open math symbol picker (recently used + saved symbols) |
 | **Alt+Shift+Z** | Open Zotero citation picker |
 
 ### Kernel management (Command Palette)

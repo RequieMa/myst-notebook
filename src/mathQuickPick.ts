@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { MATH_SYMBOLS, MATH_SYMBOLS_BY_LATEX } from './mathSymbols';
 import { MathSymbolStore } from './mathPalette';
+import { buildMathQuickPickSections } from './core/mathQuickPickItems';
 
 interface SymbolPickItem extends vscode.QuickPickItem {
   latex: string;
@@ -11,41 +12,31 @@ export async function insertMathSymbolQuickPick(
   store: MathSymbolStore,
   insertAtCursor: (latex: string, snippet?: string) => void
 ): Promise<void> {
-  const recent = store.getRecent(20);
-  const recentSet = new Set(recent);
+  const sections = buildMathQuickPickSections({
+    stored: store.getAll(),
+    recent: store.getRecent(20),
+    getSymbol: (latex) => MATH_SYMBOLS_BY_LATEX.get(latex),
+    builtInSymbols: MATH_SYMBOLS,
+    getCount: (latex) => store.getStats(latex)?.count ?? 0,
+  });
 
-  // Use MATH_SYMBOLS_BY_LATEX for O(1) lookup on large lists
-  const recentItems: SymbolPickItem[] = recent
-    .map(latex => {
-      const sym = MATH_SYMBOLS_BY_LATEX.get(latex);
-      return {
-        label: latex,
-        description: sym ? `${sym.unicode ?? ''} — ${sym.description}` : '',
-        latex,
-        snippet: sym?.snippet,
-      };
-    })
-    .filter(item => item.label); // skip symbols not in built-in list
-
-  const allItems: SymbolPickItem[] = MATH_SYMBOLS
-    .filter(sym => !recentSet.has(sym.latex))
-    .map(sym => ({
-      label: sym.latex,
-      description: `${sym.unicode ?? ''} — ${sym.description}`,
-      latex: sym.latex,
-      snippet: sym.snippet,
-    }));
-
-  const items: SymbolPickItem[] = [
-    ...(recentItems.length > 0
-      ? [{ label: 'Recently used', kind: vscode.QuickPickItemKind.Separator, latex: '', snippet: undefined }]
-      : []),
-    ...recentItems,
-    ...(allItems.length > 0
-      ? [{ label: 'All symbols', kind: vscode.QuickPickItemKind.Separator, latex: '', snippet: undefined }]
-      : []),
-    ...allItems,
-  ];
+  const items: SymbolPickItem[] = [];
+  for (const section of sections) {
+    items.push({
+      label: section.title,
+      kind: vscode.QuickPickItemKind.Separator,
+      latex: '',
+      snippet: undefined,
+    });
+    for (const item of section.items) {
+      items.push({
+        label: item.latex,
+        description: item.description,
+        latex: item.latex,
+        snippet: item.snippet,
+      });
+    }
+  }
 
   const picked = await vscode.window.showQuickPick(items, {
     placeHolder: 'Search math symbols…',

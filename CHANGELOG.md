@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.7] - 2026-10-09
+
+### Fixed
+- **Deleting a cell no longer jumps to the first cell** — `Ctrl+D` is a structural edit that resets VS Code's internal focused-cell pointer to cell 0; the auto-preview handler was re-entering edit mode afterwards and yanking the selection to the first cell. The handler now detects the cell-count decrease and skips the edit re-entry.
+- **Saved LaTeX always appears in the math QuickPick** — user-saved snippets (`Ctrl+Alt+S`) were only listed in `Ctrl+Shift+M` when they happened to fall inside the top-20 recency window; they now always appear under a dedicated "Saved symbols" section.
+- **`Ctrl+↑/↓` multi-select no longer collapses** — auto-preview (`notebook.quitEditAllCells`) was resetting a growing keyboard multi-select back to a single cell on every keypress; multi-cell selections now skip auto-preview, so the selection extends continuously.
+
 ## [0.2.6] - 2026-09-06
 
 ### Changed

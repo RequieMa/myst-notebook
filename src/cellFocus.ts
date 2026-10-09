@@ -53,6 +53,12 @@ export function registerSingleClickEdit(context: vscode.ExtensionContext): void 
   // Last single-cell selection start, for the adjacent-step (arrow-key) check.
   const lastStart = new Map<string, number>();
 
+  // Last known cell count per notebook. A decrease means cells were just
+  // deleted (`notebook.cell.delete`). That is a structural edit which resets
+  // VS Code's internal focused-cell pointer to cell 0, so calling
+  // `notebook.cell.edit` afterwards would yank the selection to the first cell.
+  const lastCellCount = new Map<string, number>();
+
   context.subscriptions.push(
     vscode.workspace.onDidCloseNotebookDocument((nb) => {
       const key = nb.uri.toString();
@@ -60,6 +66,7 @@ export function registerSingleClickEdit(context: vscode.ExtensionContext): void 
       lastSelections.delete(key);
       navigating.delete(key);
       lastStart.delete(key);
+      lastCellCount.delete(key);
     }),
   );
 
@@ -71,6 +78,16 @@ export function registerSingleClickEdit(context: vscode.ExtensionContext): void 
       const key = nb.uri.toString();
 
       if (handling.has(key)) return;
+
+      // Detect a cell deletion from the preceding event's cell count. When the
+      // count shrank, `notebook.cell.delete` just ran: skip the edit re-entry
+      // below, because notebook.cell.edit reads VS Code's internal focused-cell
+      // pointer (reset to cell 0 by the structural edit) and would jump to the
+      // first cell.
+      const prevCount = lastCellCount.get(key);
+      const currentCount = nb.cellCount;
+      lastCellCount.set(key, currentCount);
+      const cellsDeleted = prevCount !== undefined && currentCount < prevCount;
 
       const signature = e.selections.map((s) => `${s.start}:${s.end}`).join(',');
 
@@ -85,6 +102,14 @@ export function registerSingleClickEdit(context: vscode.ExtensionContext): void 
           }
         }
       }
+
+      // A multi-cell selection (keyboard Ctrl+Up/Down, Shift+click, disjoint
+      // Ctrl+click) must not trigger auto-preview: `quitEditAllCells` focuses
+      // the active cell's container, which collapses the multi-select back to a
+      // single cell and drops cellSelection's anchor state.
+      const isMultiCell =
+        e.selections.length > 1 ||
+        e.selections.some((s) => !s.isEmpty && s.end - s.start > 1);
 
       // Escape (quit-edit) re-emits the SAME selection. Enter navigation mode
       // so the following arrow-key moves do not yank a cell back into edit.
@@ -111,14 +136,21 @@ export function registerSingleClickEdit(context: vscode.ExtensionContext): void 
 
       handling.add(key);
       try {
-        // Auto-preview: revert every cell in edit mode back to preview.
-        try {
-          await vscode.commands.executeCommand('notebook.quitEditAllCells');
-        } catch {
-          await vscode.commands.executeCommand('notebook.cell.quitEdit');
+        // Auto-preview: revert every cell in edit mode back to preview — except
+        // for a multi-cell selection, which quitEditAllCells would collapse.
+        if (!isMultiCell) {
+          try {
+            await vscode.commands.executeCommand('notebook.quitEditAllCells');
+          } catch {
+            await vscode.commands.executeCommand('notebook.cell.quitEdit');
+          }
         }
 
         if (target === undefined) return;
+
+        // A deleted cell leaves the list focused on the surviving cell; do not
+        // re-enter edit mode (see the cellsDeleted comment above).
+        if (cellsDeleted) return;
 
         nbEditor.selection = new vscode.NotebookRange(target, target + 1);
         await vscode.commands.executeCommand('notebook.cell.edit');

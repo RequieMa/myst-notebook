@@ -1,8 +1,8 @@
 # TODO
 
-## 待修复（当前轮）
+## 待设计（暂不实现）
 
-- [ ] **`Ctrl+↑/↓` 多选只能选中 2 个单元格，无法持续扩展成真正的多选** — 根因：每次 `Ctrl+↑/↓` 扩展出多选后，`cellFocus.ts` 的 auto-preview 会因 selection change 触发 `notebook.quitEditAllCells`；其内部 `focusNotebookCell(activeCell, 'container')` → `focusElement` 会把 selection 重置回单个 `activeCell`，导致多选被折叠、`cellSelection.ts` 的锚点状态丢失，下次按键重新锚定又只得到 2 个单元格。修复方向：当 selection 是多单元格区间时跳过 auto-preview，或改用不改变 selection 的 preview 方式。
+- [ ] **数学记号体验重新设计** — 现状：数学记号有 3 个调用入口（① 左侧 Math Palette 树点击；② `\` 后自动补全；③ `Ctrl+Shift+M` QuickPick）。`Ctrl+Alt+S` 保存的记号现在出现在 ① 和 ③（③ 已修，新增「Saved symbols」区，不再受 top-20 截断）；② 仍只显示 `\` 前缀记号。待重新设计整体体验（例如：统一保存记号的展示、让 ② 也能访问非 `\` 记号等）。本次先不做额外修改。
 
 ## 本次任务总览（v0.2.5 — 6 个 UX fix）
 

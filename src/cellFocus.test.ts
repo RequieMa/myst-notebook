@@ -37,10 +37,15 @@ describe('cellFocus', () => {
 
   function fireSelection(
     notebookType: string,
-    opts: { selections?: Array<{ start: number; end: number; isEmpty: boolean }>; cellKind?: number } = {},
+    opts: {
+      selections?: Array<{ start: number; end: number; isEmpty: boolean }>;
+      cellKind?: number;
+      cellCount?: number;
+    } = {},
   ): void {
     const cellKind = opts.cellKind ?? 1;
     const nb = makeNotebook(notebookType);
+    nb.cellCount = opts.cellCount ?? 10;
     nb.cellAt = (i: number) => ({ index: i, kind: cellKind, document: { uri: { toString: () => `cell://${i}` } } });
 
     const selections = opts.selections ?? [{ start: 0, end: 1, isEmpty: false }];
@@ -122,6 +127,25 @@ describe('cellFocus', () => {
     expect(callArgs.some((c) => c.command === 'notebook.quitEditAllCells')).toBe(true);
   });
 
+  it('does not auto-preview for a contiguous multi-cell selection', async () => {
+    registerSingleClickEdit({ subscriptions: [] } as any);
+    fireSelection('myst-notebook', { selections: [{ start: 0, end: 3, isEmpty: false }] });
+    await vi.advanceTimersByTimeAsync(60);
+    expect(callArgs.some((c) => c.command === 'notebook.quitEditAllCells')).toBe(false);
+  });
+
+  it('does not auto-preview for a disjoint multi-cell selection', async () => {
+    registerSingleClickEdit({ subscriptions: [] } as any);
+    fireSelection('myst-notebook', {
+      selections: [
+        { start: 0, end: 1, isEmpty: false },
+        { start: 2, end: 3, isEmpty: false },
+      ],
+    });
+    await vi.advanceTimersByTimeAsync(60);
+    expect(callArgs.some((c) => c.command === 'notebook.quitEditAllCells')).toBe(false);
+  });
+
   it('does not re-enter edit mode when the same cell is re-selected (Escape quit)', async () => {
     registerSingleClickEdit({ subscriptions: [] } as any);
 
@@ -170,6 +194,24 @@ describe('cellFocus', () => {
     fireSelection('myst-notebook', { selections: [{ start: 1, end: 2, isEmpty: false }] });
     await vi.advanceTimersByTimeAsync(60);
     fireSelection('myst-notebook', { selections: [{ start: 2, end: 3, isEmpty: false }] });
+    await vi.advanceTimersByTimeAsync(60);
+
+    const editCalls = callArgs.filter((c) => c.command === 'notebook.cell.edit');
+    expect(editCalls.length).toBe(1);
+  });
+
+  it('does not re-enter edit mode after a cell is deleted (cell count decreases)', async () => {
+    registerSingleClickEdit({ subscriptions: [] } as any);
+
+    // A normal single-click on a markup cell enters edit mode.
+    fireSelection('myst-notebook', { selections: [{ start: 0, end: 1, isEmpty: false }], cellCount: 10 });
+    await vi.advanceTimersByTimeAsync(60);
+
+    // Deleting a cell is a structural edit that resets VS Code's internal
+    // focused-cell pointer to cell 0. The selection change it emits (now at a
+    // different index, with one fewer cell) must NOT call notebook.cell.edit,
+    // otherwise the selection yanks back to the first cell.
+    fireSelection('myst-notebook', { selections: [{ start: 2, end: 3, isEmpty: false }], cellCount: 9 });
     await vi.advanceTimersByTimeAsync(60);
 
     const editCalls = callArgs.filter((c) => c.command === 'notebook.cell.edit');
